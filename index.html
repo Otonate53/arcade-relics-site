@@ -486,8 +486,8 @@
     animation: phoneFloat 6s ease-in-out infinite;
 }
 
-/* Désactive l'ancienne encoche créée en CSS */
-.phone::before {
+
+    .phone::before {
     display: none;
 }
 
@@ -498,16 +498,46 @@
     inset: 4px;
 
     overflow: hidden;
+    isolation: isolate;
 
     border-radius: 36px;
     background: #080811;
 }
 
+.phone-screen::before {
+    content: "";
+
+    position: absolute;
+    z-index: 0;
+    inset: -20px;
+
+    background-image: url("./capture-collection.jpg");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+
+    filter: blur(18px) brightness(0.45);
+    transform: scale(1.1);
+
+    pointer-events: none;
+}
+
 .phone-screen::after {
-    display: none;
+    content: "";
+
+    position: absolute;
+    z-index: 1;
+    inset: 0;
+
+    background: rgba(5, 5, 12, 0.18);
+
+    pointer-events: none;
 }
 
 .phone-screenshot {
+    position: relative;
+    z-index: 2;
+
     display: block;
 
     width: 100%;
@@ -516,7 +546,6 @@
     object-fit: contain;
     object-position: center;
 
-    background: #080811;
     border-radius: inherit;
 }
 
