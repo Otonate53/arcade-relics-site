@@ -1,63 +1,86 @@
 <!DOCTYPE html>
 <html lang="fr">
 
-    <style>
-    .back-button {
-        display: inline-flex;
-        align-items: center;
-        gap: 10px;
-
-        margin-bottom: 25px;
-        padding: 12px 18px;
-
-        border: 1px solid rgba(38, 230, 255, 0.35);
-        border-radius: 14px;
-
-        color: #ffffff;
-        background: rgba(12, 12, 25, 0.95);
-        box-shadow: 0 0 22px rgba(38, 230, 255, 0.15);
-
-        font-family: Arial, sans-serif;
-        font-size: 14px;
-        font-weight: 700;
-        text-decoration: none;
-
-        transition:
-            transform 0.2s ease,
-            border-color 0.2s ease,
-            box-shadow 0.2s ease;
-    }
-
-    .back-button:hover {
-        transform: translateY(-2px);
-        border-color: #26e6ff;
-        box-shadow: 0 0 28px rgba(38, 230, 255, 0.3);
-    }
-
-    .back-button span {
-        color: #ff2da4;
-        font-size: 20px;
-    }
-</style>
-    
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
     <title>Règles de confidentialité – Arcade Relics</title>
+
+    <style>
+        body {
+            max-width: 850px;
+            margin: 40px auto;
+            padding: 0 20px;
+
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+        }
+
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+
+            margin-bottom: 25px;
+            padding: 12px 18px;
+
+            border: 1px solid rgba(38, 230, 255, 0.35);
+            border-radius: 14px;
+
+            color: #ffffff;
+            background: rgba(12, 12, 25, 0.95);
+            box-shadow: 0 0 22px rgba(38, 230, 255, 0.15);
+
+            font-size: 14px;
+            font-weight: 700;
+            text-decoration: none;
+
+            transition:
+                transform 0.2s ease,
+                border-color 0.2s ease,
+                box-shadow 0.2s ease;
+        }
+
+        .back-button:hover {
+            transform: translateY(-2px);
+            border-color: #26e6ff;
+            box-shadow: 0 0 28px rgba(38, 230, 255, 0.3);
+        }
+
+        .back-button span {
+            color: #ff2da4;
+            font-size: 20px;
+        }
+
+        @media (max-width: 600px) {
+            body {
+                margin-top: 20px;
+            }
+
+            .back-button {
+                padding: 10px 14px;
+            }
+        }
+    </style>
 </head>
 
-<body style="max-width: 850px; margin: 40px auto; padding: 0 20px;
-             font-family: Arial, sans-serif; line-height: 1.6;">
+<body>
+
+    <a href="/" class="back-button">
+        <span aria-hidden="true">←</span>
+        Retour à Arcade Relics
+    </a>
 
     <h1>Règles de confidentialité – Arcade Relics</h1>
 
-    <a href="/" class="back-button">
-    <span aria-hidden="true">←</span>
-    Retour à Arcade Relics
-</a>
-    
-
-    <p><strong>Dernière mise à jour : 21 juillet 2026</strong></p>
+    <p>
+        <strong>Dernière mise à jour : 21 juillet 2026</strong>
+    </p>
 
     <h2>1. Présentation</h2>
 
