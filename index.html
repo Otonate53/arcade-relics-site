@@ -465,58 +465,58 @@
         }
 
         .phone {
-            position: relative;
-            width: 310px;
-            height: 650px;
-            padding: 10px;
-            border: 1px solid rgba(255, 255, 255, 0.28);
-            border-radius: 44px;
-            background: linear-gradient(145deg, #28283d, #090913 38%, #1d1d2e);
-            box-shadow:
-                0 50px 90px rgba(0, 0, 0, 0.52),
-                0 0 48px rgba(255, 45, 164, 0.18),
-                inset 0 0 0 2px rgba(255, 255, 255, 0.045);
-            transform: rotateY(-7deg) rotateX(3deg);
-            animation: phoneFloat 6s ease-in-out infinite;
-        }
+    position: relative;
 
-        .phone::before {
-            position: absolute;
-            z-index: 3;
-            top: 17px;
-            left: 50%;
-            width: 93px;
-            height: 24px;
-            border-radius: 999px;
-            content: "";
-            background: #05050a;
-            transform: translateX(-50%);
-        }
+    width: 310px;
+    height: auto;
+    aspect-ratio: 709 / 1536;
 
-        .phone-screen {
-            position: relative;
-            height: 100%;
-            overflow: hidden;
-            border-radius: 35px;
-            background:
-                radial-gradient(circle at 50% -10%, rgba(255, 45, 164, 0.23), transparent 40%),
-                linear-gradient(180deg, #10101f, #090911);
-        }
+    padding: 0;
+    overflow: hidden;
 
-        .phone-screen::after {
-            position: absolute;
-            inset: 0;
-            content: "";
-            pointer-events: none;
-            background: linear-gradient(110deg, rgba(255, 255, 255, 0.08), transparent 25%, transparent 70%, rgba(255, 255, 255, 0.025));
-        }
+    border: 3px solid rgba(255, 255, 255, 0.22);
+    border-radius: 38px;
 
-        .phone-screenshot {
-    display: block;
+    background: #05050a;
+
+    box-shadow:
+        0 50px 90px rgba(0, 0, 0, 0.52),
+        0 0 48px rgba(255, 45, 164, 0.18);
+
+    transform: rotateY(-7deg) rotateX(3deg);
+    animation: phoneFloat 6s ease-in-out infinite;
+}
+
+/* Suppression de la fausse encoche */
+.phone::before {
+    display: none;
+}
+
+.phone-screen {
+    position: absolute;
+    inset: 0;
+
     width: 100%;
     height: 100%;
+
+    overflow: hidden;
+    border-radius: inherit;
+    background: none;
+}
+
+.phone-screen::after {
+    display: none;
+}
+
+.phone-screenshot {
+    display: block;
+
+    width: 100%;
+    height: 100%;
+
     object-fit: cover;
     object-position: center;
+
     border-radius: inherit;
 }
 
@@ -1534,10 +1534,11 @@
                 margin-top: 20px;
             }
 
-            .phone {
-                width: 310px;
-               height: 650px;
-            }
+           .phone {
+    width: 310px;
+    height: auto;
+    aspect-ratio: 709 / 1536;
+}
 
             .proof-card {
                 grid-template-columns: repeat(2, 1fr);
