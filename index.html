@@ -505,6 +505,16 @@
     border-radius: 32px;
     background: #080811;
 }
+        
+.phone-screen {
+    position: absolute;
+    inset: 4px;
+
+    overflow: hidden;
+
+    border-radius: 36px;
+    background: #080811;
+}
 
 .phone-screen::after {
     display: none;
@@ -516,18 +526,18 @@
     width: 100%;
     height: 100%;
 
-    object-fit: contain;
+    object-fit: cover;
     object-position: center;
 
-    border-radius: 24px;
+    border-radius: inherit;
 }
 
-/* Dynamic Island */
+
 .dynamic-island {
     position: absolute;
     z-index: 20;
 
-    top: 17px;
+    top: 13px;
     left: 50%;
 
     width: 108px;
@@ -543,7 +553,6 @@
         inset 0 1px 1px rgba(255, 255, 255, 0.04);
 
     transform: translateX(-50%);
-
     pointer-events: none;
 }
 
