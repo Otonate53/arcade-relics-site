@@ -467,7 +467,7 @@
         .phone {
             position: relative;
             width: 310px;
-            height: 625px;
+            height: 650px;
             padding: 10px;
             border: 1px solid rgba(255, 255, 255, 0.28);
             border-radius: 44px;
@@ -510,6 +510,15 @@
             pointer-events: none;
             background: linear-gradient(110deg, rgba(255, 255, 255, 0.08), transparent 25%, transparent 70%, rgba(255, 255, 255, 0.025));
         }
+
+        .phone-screenshot {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    border-radius: inherit;
+}
 
         .app-header {
             display: flex;
@@ -1527,7 +1536,7 @@
 
             .phone {
                 width: 310px;
-                height: 625px;
+               height: 650px;
             }
 
             .proof-card {
@@ -1853,98 +1862,15 @@
                     </div>
 
                     <div class="phone">
-                        <div class="phone-screen">
-                            <div class="app-header">
-                                <div class="app-name">Arcade <span>Relics</span></div>
-                                <div class="profile-dot">AR</div>
-                            </div>
-
-                            <div class="app-content">
-                                <div class="welcome">
-                                    Bienvenue dans votre espace
-                                    <strong>Ma collection</strong>
-                                </div>
-
-                                <div class="app-banner">
-                                    <small>ARCADE RELICS</small>
-                                    <h3>Votre collection vous suit partout.</h3>
-                                </div>
-
-                                <div class="stats-row">
-                                    <div class="mini-stat">
-                                        <strong>128</strong>
-                                        <span>Jeux</span>
-                                    </div>
-
-                                    <div class="mini-stat">
-                                        <strong>12</strong>
-                                        <span>Consoles</span>
-                                    </div>
-
-                                    <div class="mini-stat">
-                                        <strong>24</strong>
-                                        <span>Wishlist</span>
-                                    </div>
-                                </div>
-
-                                <div class="app-section-title">
-                                    Derniers ajouts
-                                    <span>Voir tout</span>
-                                </div>
-
-                                <div class="game-row">
-                                    <div class="game-card">
-                                        <div class="game-cover cover-one">
-                                            <strong>Neon<br>Legacy</strong>
-                                        </div>
-                                    </div>
-
-                                    <div class="game-card">
-                                        <div class="game-cover cover-two">
-                                            <strong>Retro<br>Racer</strong>
-                                        </div>
-                                    </div>
-
-                                    <div class="game-card">
-                                        <div class="game-cover cover-three">
-                                            <strong>Deep<br>Orbit</strong>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="bottom-nav">
-                                <div>
-                                    <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
-                                        <path d="m3 11 9-8 9 8v9a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1Z"/>
-                                    </svg>
-                                    Accueil
-                                </div>
-
-                                <div>
-                                    <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
-                                        <path d="M4 5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2Z"/>
-                                        <path d="M8 7h8M8 11h8M8 15h5"/>
-                                    </svg>
-                                    Collection
-                                </div>
-
-                                <div>
-                                    <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
-                                        <path d="M12 21s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 5.6-7 10-7 10Z"/>
-                                    </svg>
-                                    Wishlist
-                                </div>
-
-                                <div>
-                                    <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
-                                        <circle cx="12" cy="8" r="4"/>
-                                        <path d="M4 21a8 8 0 0 1 16 0"/>
-                                    </svg>
-                                    Profil
-                                </div>
-                            </div>
-                        </div>
+                        <div class="phone">
+    <div class="phone-screen">
+        <img
+            src="./capture-collection.jpg"
+            alt="Collection de jeux dans l'application Arcade Relics"
+            class="phone-screenshot"
+        >
+    </div>
+</div>
                     </div>
 
                     <div class="floating-card floating-two">
