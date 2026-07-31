@@ -827,9 +827,9 @@
 .app-carousel {
     position: relative;
 
-    width: min(1100px, 100%);
+    width: min(760px, 100%);
     margin: 0 auto;
-    padding: 0 70px 48px;
+  padding: 0 55px 48px;
 }
 
 .carousel-viewport {
@@ -869,28 +869,31 @@
     display: grid;
 
     width: 100%;
-    height: min(72vh, 760px);
+   height: 470px;
     min-width: 100%;
 
     flex: 0 0 100%;
     place-items: center;
 
-    padding: 22px;
+   padding: 16px;
 }
 
 .carousel-slide img {
     display: block;
 
-    width: 100%;
-    height: 100%;
+    width: auto;
+    height: auto;
 
-    border-radius: 20px;
+    max-width: 100%;
+    max-height: 100%;
+
+    border-radius: 16px;
 
     object-fit: contain;
     object-position: center;
 
     filter:
-        drop-shadow(0 25px 35px rgba(0, 0, 0, 0.45));
+        drop-shadow(0 18px 25px rgba(0, 0, 0, 0.4));
 }
 
 .carousel-arrow {
@@ -1003,13 +1006,14 @@
         padding-top: 35px;
     }
 
-    .app-carousel {
-        padding-right: 50px;
-        padding-left: 50px;
-    }
+   .app-carousel {
+    width: min(660px, 100%);
+    padding-right: 48px;
+    padding-left: 48px;
+}
 
     .carousel-slide {
-        height: min(68vh, 650px);
+      height: 420px;
         padding: 15px;
     }
 
@@ -1031,7 +1035,7 @@
 
     .app-carousel {
         padding-right: 0;
-        padding-bottom: 42px;
+      padding-bottom: 48px;
         padding-left: 0;
     }
 
@@ -1040,7 +1044,7 @@
     }
 
     .carousel-slide {
-        height: min(65vh, 560px);
+        height: 360px;
         padding: 10px;
     }
 
