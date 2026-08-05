@@ -2278,9 +2278,7 @@
                 </div>
             </div>
         </section>
-        </section>
-
-        <!-- Carrousel des fonctionnalités -->
+      
         <section
             class="showcase-carousel"
             aria-labelledby="carouselTitle"
@@ -2438,7 +2436,6 @@
             </div>
         </section>
 
-        <section class="proof">
         <section class="proof">
             <div class="container">
                 <div class="proof-card reveal">
@@ -2994,49 +2991,7 @@ const updateCarouselDimensions = () => {
         );
     }
 };
-    const activeSlide =
-        carouselSlides[currentSlide];
-
-    const activeImage =
-        activeSlide.querySelector("img");
-
-    const applyHeight = () => {
-        const viewportWidth =
-            carouselViewport.clientWidth;
-
-        if (
-            !viewportWidth ||
-            !activeImage.naturalWidth ||
-            !activeImage.naturalHeight
-        ) {
-            return;
-        }
-
-        const imageRatio =
-            activeImage.naturalHeight /
-            activeImage.naturalWidth;
-
-        const calculatedHeight =
-            Math.round(
-                viewportWidth * imageRatio
-            );
-
-        carouselViewport.style.height =
-            `${calculatedHeight}px`;
-    };
-
-    if (activeImage.complete) {
-        applyHeight();
-    } else {
-        activeImage.addEventListener(
-            "load",
-            applyHeight,
-            {
-                once: true
-            }
-        );
-    }
-};
+   
     
 
     const displaySlide = (newIndex) => {
