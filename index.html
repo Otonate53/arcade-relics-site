@@ -2383,6 +2383,10 @@
         height: 32px !important;
     }
 }
+
+        #application {
+    scroll-margin-top: 115px;
+}
         
     </style>
 </head>
@@ -2402,12 +2406,11 @@
     >
 </a>
 
-            <nav class="nav-links" id="navigation" aria-label="Navigation principale">
-                <a href="#fonctionnalites">Fonctionnalités</a>
-                <a href="#application">L'application</a>
-                <a href="#demarrage">Comment ça marche</a>
-                <a href="#telechargement">Téléchargement</a>
-            </nav>
+           <nav class="nav-links" id="navigation" aria-label="Navigation principale">
+    <a href="#fonctionnalites">Fonctionnalités</a>
+    <a href="#application">L'application</a>
+    <a href="#demarrage">Comment ça marche</a>
+</nav>
 
             <a class="button button-primary nav-cta" href="#telechargement">
                 Télécharger
@@ -2512,9 +2515,11 @@
         </section>
       
         <section
-            class="showcase-carousel"
-            aria-labelledby="carouselTitle"
-        >
+           <section
+    class="showcase-carousel"
+    id="application"
+    aria-labelledby="carouselTitle"
+>
             <div class="container">
 
                 <div class="carousel-heading reveal">
