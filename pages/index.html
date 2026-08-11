@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Arcade Relics, l'application Android pour gérer votre collection de jeux vidéo, vos consoles et votre wishlist.">
+    <meta name="theme-color" content="#080812">
+
+    <title>Arcade Relics — Votre collection de jeux vidéo</title>
+
+    <link rel="icon" href="../assets/img/favicon.ico?v=1" sizes="any">
+
+<link
+    rel="icon"
+    type="image/png"
+    sizes="32x32"
+    href="../assets/img/favicon-32x32.png?v=1"
+>
+
+<link
+    rel="icon"
+    type="image/png"
+    sizes="16x16"
+    href="../assets/img/favicon-16x16.png?v=1"
+>
+
+<link
+    rel="apple-touch-icon"
+    sizes="180x180"
+    href="../assets/img/apple-touch-icon.png?v=1"
+>
+    <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+
+<body>
+    <header class="navbar">
+        <div class="container nav-inner">
+           <a
+    class="brand brand-header-logo"
+    href="#accueil"
+    aria-label="Retour à l'accueil"
+>
+    <img
+        src="../assets/img/logo-arcade-relics.png?v=5"
+        alt="Arcade Relics"
+        class="header-logo-image"
+    >
+</a>
+
+           <nav class="nav-links" id="navigation" aria-label="Navigation principale">
+               <a href="#application">L'application</a>
+    <a href="#fonctionnalites">Fonctionnalités</a>
+    <a href="#demarrage">Comment ça marche</a>
+</nav>
+
+            <a class="button button-primary nav-cta" href="#telechargement">
+                Télécharger
+            </a>
+
+            <button class="menu-button" id="menuButton" type="button" aria-label="Ouvrir le menu" aria-expanded="false">
+                <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M4 7h16M4 12h16M4 17h16"/>
+                </svg>
+            </button>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero" id="accueil">
+            <div class="container hero-grid">
+                <div class="hero-copy">
+                    <div class="hero-badge">
+                        <span class="hero-badge-dot"></span>
+                        Disponible prochainement sur Android
+                    </div>
+
+                    <h1>
+                        Toute votre collection en
+                        <span class="gradient-text">Une seule application.</span>
+                    </h1>
+
+                    <p class="hero-description">
+                        Arcade Relics vous permet de répertorier vos jeux vidéo et vos consoles,
+                        de gérer votre wishlist et de retrouver facilement toutes les pièces de
+                        votre collection.
+                    </p>
+
+                    <div class="hero-actions">
+                        <a class="button button-primary"
+   href="https://play.google.com/store/apps/details?id=com.exemple.arcaderelics&pcampaignid=web_share">
+                            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M12 3v12m0 0 4-4m-4 4-4-4M5 20h14"/>
+                            </svg>
+                            Télécharger l'application
+                        </a>
+
+                        <a class="button button-secondary" href="#fonctionnalites">
+                            Découvrir Arcade Relics
+                            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="m9 18 6-6-6-6"/>
+                            </svg>
+                        </a>
+                    </div>
+
+                    <div class="hero-info">
+                        <span>
+                            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="m5 12 4 4L19 6"/>
+                            </svg>
+                            Simple à utiliser
+                        </span>
+
+                        <span>
+                            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="m5 12 4 4L19 6"/>
+                            </svg>
+                            Collection personnalisable
+                        </span>
+
+                        <span>
+                            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="m5 12 4 4L19 6"/>
+                            </svg>
+                            Gratuit
+                        </span>
+                    </div>
+                </div>
+
+                <div class="phone-stage" aria-label="Aperçu de l'application Arcade Relics">
+                    <div class="floating-card floating-one">
+                        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M12 21s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 5.6-7 10-7 10Z"/>
+                        </svg>
+                        <div>
+                            <strong>Wishlist</strong>
+                            <span>Vos prochaines trouvailles</span>
+                        </div>
+                    </div>
+
+<img
+    src="../assets/img/telephone-arcade-relics-v2.jpg"
+    alt="Aperçu de l'application Arcade Relics sur smartphone"
+    class="phone-visual"
+>
+
+                    <div class="floating-card floating-two">
+                        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M8.5 9.5h-2m1-1v2m7.7-.7h.1m2 2h.1M7 6.5h10a4 4 0 0 1 3.8 5.2l-1.1 3.6a2.7 2.7 0 0 1-4.5 1.1L13.8 15h-3.6l-1.4 1.4a2.7 2.7 0 0 1-4.5-1.1l-1.1-3.6A4 4 0 0 1 7 6.5Z"/>
+                        </svg>
+                        <div>
+                            <strong>128 jeux ajoutés</strong>
+                            <span>Collection mise à jour</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+      
+        <section
+    class="showcase-carousel"
+    id="application"
+    aria-labelledby="carouselTitle"
+>
+            <div class="container">
+
+                <div class="carousel-heading reveal">
+                    <div class="eyebrow">
+                        Aperçu de l'application
+                    </div>
+
+                    <h2 id="carouselTitle">
+                        Découvrez
+                        <span class="gradient-text">
+                            Arcade Relics.
+                        </span>
+                    </h2>
+
+                    <p>
+                        Parcourez les principales fonctionnalités de
+                        l'application.
+                    </p>
+                </div>
+
+                <div
+                    class="app-carousel reveal"
+                    id="appCarousel"
+                    tabindex="0"
+                    aria-roledescription="carrousel"
+                    aria-label="Présentation des fonctionnalités d'Arcade Relics"
+                >
+
+                    <button
+                        class="carousel-arrow carousel-arrow-left"
+                        type="button"
+                        data-carousel-prev
+                        aria-label="Image précédente"
+                    >
+                        <svg
+                            class="icon"
+                            viewBox="0 0 24 24"
+                            aria-hidden="true"
+                        >
+                            <path d="m15 18-6-6 6-6"/>
+                        </svg>
+                    </button>
+
+                    <div class="carousel-viewport">
+
+                        <div
+                            class="carousel-track"
+                            data-carousel-track
+                        >
+
+                            <article
+                                class="carousel-slide"
+                                aria-label="1 sur 4"
+                            >
+                                <img
+                                    src="../assets/img/page_acceuil.png"
+                                    alt="Gestion de la collection de jeux dans Arcade Relics"
+                                    loading="lazy"
+                                >
+                            </article>
+
+                            <article
+                                class="carousel-slide"
+                                aria-label="2 sur 4"
+                                aria-hidden="true"
+                            >
+                                <img
+                                    src="../assets/img/page_console.png"
+                                    alt="Gestion de la collection de consoles dans Arcade Relics"
+                                    loading="lazy"
+                                >
+                            </article>
+
+                            <article
+                                class="carousel-slide"
+                                aria-label="3 sur 4"
+                                aria-hidden="true"
+                            >
+                                <img
+                                    src="../assets/img/page_recherche.png"
+                                    alt="Recherche rapide d'un jeu ou d'une console dans Arcade Relics"
+                                    loading="lazy"
+                                >
+                            </article>
+
+                            <article
+                                class="carousel-slide"
+                                aria-label="4 sur 4"
+                                aria-hidden="true"
+                            >
+                                <img
+                                    src="../assets/img/page_wishlist.png"
+                                    alt="Gestion de la wishlist dans Arcade Relics"
+                                    loading="lazy"
+                                >
+                            </article>
+
+                        </div>
+                    </div>
+
+                    <button
+                        class="carousel-arrow carousel-arrow-right"
+                        type="button"
+                        data-carousel-next
+                        aria-label="Image suivante"
+                    >
+                        <svg
+                            class="icon"
+                            viewBox="0 0 24 24"
+                            aria-hidden="true"
+                        >
+                            <path d="m9 18 6-6-6-6"/>
+                        </svg>
+                    </button>
+
+                    <div
+                        class="carousel-dots"
+                        aria-label="Sélectionner une image"
+                    >
+                        <button
+                            class="carousel-dot active"
+                            type="button"
+                            data-carousel-dot="0"
+                            aria-label="Afficher l'image 1"
+                            aria-current="true"
+                        ></button>
+
+                        <button
+                            class="carousel-dot"
+                            type="button"
+                            data-carousel-dot="1"
+                            aria-label="Afficher l'image 2"
+                        ></button>
+
+                        <button
+                            class="carousel-dot"
+                            type="button"
+                            data-carousel-dot="2"
+                            aria-label="Afficher l'image 3"
+                        ></button>
+
+                        <button
+                            class="carousel-dot"
+                            type="button"
+                            data-carousel-dot="3"
+                            aria-label="Afficher l'image 4"
+                        ></button>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+    
+
+        <section class="section" id="fonctionnalites">
+            <div class="container">
+                <div class="section-header reveal">
+                    <div class="eyebrow">Fonctionnalités</div>
+
+                    <h2>
+                        Pensée pour les
+                        <span class="gradient-text">collectionneurs.</span>
+                    </h2>
+
+                    <p>
+                        Gérez chaque partie de votre collection depuis une interface claire,
+                        rapide et entièrement dédiée au jeu vidéo.
+                    </p>
+                </div>
+
+                <div class="features-grid">
+                    <article class="feature-card feature-pink reveal">
+                        <div class="feature-icon">
+                            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                                <rect x="4" y="3" width="16" height="18" rx="2"/>
+                                <path d="M8 7h8M8 11h8M8 15h5"/>
+                            </svg>
+                        </div>
+
+                        <h3>Collection de jeux</h3>
+
+                        <p>
+                            Ajoutez vos jeux physiques et conservez toutes leurs
+                            informations au même endroit.
+                        </p>
+                    </article>
+
+                    <article class="feature-card feature-cyan reveal">
+                        <div class="feature-icon">
+                            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M8.5 9.5h-2m1-1v2m7.7-.7h.1m2 2h.1M7 6.5h10a4 4 0 0 1 3.8 5.2l-1.1 3.6a2.7 2.7 0 0 1-4.5 1.1L13.8 15h-3.6l-1.4 1.4a2.7 2.7 0 0 1-4.5-1.1l-1.1-3.6A4 4 0 0 1 7 6.5Z"/>
+                            </svg>
+                        </div>
+
+                        <h3>Collection de consoles</h3>
+
+                        <p>
+                            Classez vos consoles et leurs modèles qui rendent votre collection unique.
+                        </p>
+                    </article>
+
+                    <article class="feature-card feature-purple reveal">
+                        <div class="feature-icon">
+                            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M12 21s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 5.6-7 10-7 10Z"/>
+                            </svg>
+                        </div>
+
+                        <h3>Wishlist</h3>
+
+                        <p>
+                            Gardez une trace des jeux et consoles que vous recherchez pour ne
+                            jamais oublier votre prochaine acquisition avec une priorité de recherche.
+                        </p>
+                    </article>
+
+                    <article class="feature-card feature-cyan reveal">
+                        <div class="feature-icon">
+                            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                                <circle cx="11" cy="11" r="7"/>
+                                <path d="m20 20-4-4M11 8v6M8 11h6"/>
+                            </svg>
+                        </div>
+
+                        <h3>Recherche rapide</h3>
+
+                        <p>
+                            Retrouvez rapidement un jeu ou une console dans
+                            votre collection.
+                        </p>
+                    </article>
+
+                    <article class="feature-card feature-pink reveal">
+                        <div class="feature-icon">
+                            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="m5 12 4 4L19 6"/>
+                                <circle cx="12" cy="12" r="9"/>
+                            </svg>
+                        </div>
+
+                        <h3>Jeux terminés</h3>
+
+                        <p>
+                            Marquez les jeux que vous avez terminés et suivez facilement votre
+                            progression dans votre profil.
+                        </p>
+                    </article>
+
+                    <article class="feature-card feature-purple reveal">
+                        <div class="feature-icon">
+                            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                                <circle cx="8" cy="8" r="3"/>
+                                <circle cx="17" cy="7" r="2.5"/>
+                                <path d="M2.5 20a5.5 5.5 0 0 1 11 0M13 19a4.5 4.5 0 0 1 8.5 0"/>
+                            </svg>
+                        </div>
+
+                        <h3>Partage avec vos amis</h3>
+
+                        <p>
+                            Montrez votre collection et votre wishlist à vos amis depuis votre
+                            profil Arcade Relics.
+                        </p>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <section class="section showcase" id="application">
+            <div class="container showcase-grid">
+                <div class="showcase-copy reveal">
+                    <div class="eyebrow">Votre espace</div>
+
+                    <h2>
+                        Une vue claire sur
+                        <span class="gradient-text">toute votre collection</span>
+                    </h2>
+
+                    <p>
+                        Arcade Relics transforme votre collection en véritable bibliothèque
+                        personnelle. Plus besoin de listes perdues ou de notes dispersées.
+                    </p>
+
+                    <div class="check-list">
+                        <div class="check-item">
+                            <div class="check-icon">
+                                <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path d="m5 12 4 4L19 6"/>
+                                </svg>
+                            </div>
+
+                            <div>
+                                <strong>Informations personnalisées</strong>
+                                <span>Ajoutez vos propres photos, notes et informations sur vos jeux ou consoles.</span>
+                            </div>
+                        </div>
+
+                        <div class="check-item">
+                            <div class="check-icon">
+                                <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path d="m5 12 4 4L19 6"/>
+                                </svg>
+                            </div>
+
+                            <div>
+                                <strong>Classement par plateforme</strong>
+                                <span>Retrouvez vos jeux selon leur console et leur catégorie.</span>
+                            </div>
+                        </div>
+
+                        <div class="check-item">
+                            <div class="check-icon">
+                                <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path d="m5 12 4 4L19 6"/>
+                                </svg>
+                            </div>
+
+                            <div>
+                                <strong>Statistiques de collection</strong>
+                                <span>Visualisez rapidement la composition de votre bibliothèque via votre profil.</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard reveal">
+                    <div class="dashboard-bar">
+                        <div class="dashboard-title">
+                            <span class="brand-logo">
+                                <svg viewBox="0 0 24 24" aria-hidden="true">
+                                    <path d="M8.5 9.5h-2m1-1v2m7.7-.7h.1m2 2h.1M7 6.5h10a4 4 0 0 1 3.8 5.2l-1.1 3.6a2.7 2.7 0 0 1-4.5 1.1L13.8 15h-3.6l-1.4 1.4a2.7 2.7 0 0 1-4.5-1.1l-1.1-3.6A4 4 0 0 1 7 6.5Z"
+                                          fill="none"
+                                          stroke="currentColor"
+                                          stroke-width="1.7"
+                                          stroke-linecap="round"
+                                          stroke-linejoin="round"/>
+                                </svg>
+                            </span>
+                            Ma collection
+                        </div>
+
+                        <div class="dashboard-dots">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-main">
+                        <div class="panel chart-panel">
+                            <div class="panel-label">Jeux ajoutés</div>
+                            <div class="panel-value">128</div>
+
+                            <div class="chart" aria-label="Graphique représentant les jeux ajoutés">
+                                <span class="chart-bar"></span>
+                                <span class="chart-bar"></span>
+                                <span class="chart-bar"></span>
+                                <span class="chart-bar"></span>
+                                <span class="chart-bar"></span>
+                                <span class="chart-bar"></span>
+                                <span class="chart-bar"></span>
+                            </div>
+                        </div>
+
+                        <div class="side-panels">
+                            <div class="panel side-stat">
+                                <div class="side-stat-icon">
+                                    <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                                        <path d="M8.5 9.5h-2m1-1v2m7.7-.7h.1m2 2h.1M7 6.5h10a4 4 0 0 1 3.8 5.2l-1.1 3.6a2.7 2.7 0 0 1-4.5 1.1L13.8 15h-3.6l-1.4 1.4a2.7 2.7 0 0 1-4.5-1.1l-1.1-3.6A4 4 0 0 1 7 6.5Z"/>
+                                    </svg>
+                                </div>
+
+                                <div>
+                                    <strong>12</strong>
+                                    <span>Consoles</span>
+                                </div>
+                            </div>
+
+                            <div class="panel side-stat">
+                                <div class="side-stat-icon">
+                                    <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                                        <path d="M12 21s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 5.6-7 10-7 10Z"/>
+                                    </svg>
+                                </div>
+
+                                <div>
+                                    <strong>24</strong>
+                                    <span>Wishlist</span>
+                                </div>
+                            </div>
+
+                            <div class="panel side-stat">
+                                <div class="side-stat-icon">
+                                    <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                                        <path d="m5 12 4 4L19 6"/>
+                                        <circle cx="12" cy="12" r="9"/>
+                                    </svg>
+                                </div>
+
+                                <div>
+                                    <strong>67</strong>
+                                    <span>Terminés</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section" id="demarrage">
+            <div class="container">
+                <div class="section-header reveal">
+                    <div class="eyebrow">Prise en main</div>
+
+                    <h2>
+                        Votre collection en
+                        <span class="gradient-text">trois étapes.</span>
+                    </h2>
+
+                    <p>
+                        Arcade Relics a été conçu pour vous permettre de commencer rapidement,
+                        sans configuration compliquée.
+                    </p>
+                </div>
+
+                <div class="steps-grid">
+                    <article class="step reveal">
+                        <div class="step-number">01</div>
+                        <h3>Installez l'application</h3>
+                        <p>
+                            Téléchargez Arcade Relics sur votre smartphone Android.
+                        </p>
+                    </article>
+
+                    <article class="step reveal">
+                        <div class="step-number">02</div>
+                        <h3>Ajoutez vos jeux/consoles/souhaits</h3>
+                        <p>
+                            Enregistrez vos jeux, vos consoles et vos souhaits.
+                        </p>
+                    </article>
+
+                    <article class="step reveal">
+                        <div class="step-number">03</div>
+                        <h3>Profitez de votre collection</h3>
+                        <p>
+                            Retrouvez, organisez et partagez facilement votre bibliothèque ou votre wishlist.
+                        </p>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <section class="section cta-section" id="telechargement">
+            <div class="container">
+                <div class="cta reveal">
+                    <div class="cta-content">
+                        <div class="eyebrow">Arcade Relics</div>
+
+                        <h2>
+                            Votre collection mérite
+                            <span class="gradient-text">sa propre application.</span>
+                        </h2>
+
+                        <p>
+                            Rejoignez Arcade Relics et commencez à construire la bibliothèque
+                            numérique de votre collection de jeux et de consoles.
+                        </p>
+
+                        <div class="hero-actions">
+                          <a class="button button-primary"
+
+   href="https://play.google.com/store/apps/details?id=com.exemple.arcaderelics&pcampaignid=web_share">
+                                <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path d="m4 3 14 9L4 21Z"/>
+                                    <path d="m4 3 10.5 11.5M4 21l10.5-11.5"/>
+                                </svg>
+                                Disponible sur Google Play
+                            </a>
+
+                            <a class="button button-secondary" href="mailto:contact@arcaderelics.fr">
+                                Nous contacter
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container footer-inner">
+            <div>
+                <a
+    class="brand header-brand"
+    href="#accueil"
+    aria-label="Retour à l'accueil"
+>
+    <img
+        src="../assets/img/logo-arcade-relics.png?v=2"
+        alt="Arcade Relics"
+        class="header-brand-image"
+    >
+</a>
+
+                <p class="footer-text">
+                    © <span id="currentYear"></span> Arcade Relics. Tous droits réservés.
+                </p>
+            </div>
+
+            <div class="footer-links">
+               <a href="./confidentialite.html">
+    Politique de confidentialité
+</a>
+                <a href="#">Mentions légales</a>
+                <a href="mailto:contact@arcaderelics.fr">Contact</a>
+            </div>
+        </div>
+    </footer>
+    <script src="../assets/js/main.js" defer></script>
+</body>
+</html>
