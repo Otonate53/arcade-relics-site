@@ -1,3 +1,11 @@
+const crtIntro = document.getElementById("crtIntro");
+
+if (crtIntro) {
+    window.setTimeout(() => {
+        crtIntro.classList.add("is-finished");
+    }, 3000);
+}
+
 const menuButton = document.getElementById("menuButton");
         const navigation = document.getElementById("navigation");
         const navigationLinks = navigation.querySelectorAll("a");
