@@ -160,7 +160,13 @@ document.addEventListener("DOMContentLoaded", () => {
             const slideCount = carouselSlides.length;
             currentSlide = (index + slideCount) % slideCount;
 
-            carouselTrack.style.transform = `translateX(-${currentSlide * 100}%)`;
+            const viewport = appCarousel.querySelector(".carousel-viewport");
+            const slideWidth = viewport ? viewport.clientWidth : 0;
+            if (slideWidth > 0) {
+                carouselTrack.style.transform = `translateX(-${currentSlide * slideWidth}px)`;
+            } else {
+                carouselTrack.style.transform = `translateX(-${currentSlide * 100}%)`;
+            }
 
             carouselSlides.forEach((slide, idx) => {
                 slide.setAttribute("aria-hidden", String(idx !== currentSlide));
@@ -182,6 +188,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 captionTitle.textContent = slideTitles[currentSlide].title;
             }
         };
+
+        window.addEventListener("resize", () => {
+            displaySlide(currentSlide);
+        });
 
         const stopAutoplay = () => {
             if (autoplayTimer) {

@@ -1879,23 +1879,26 @@ footer {
 
     /* Hero Phone & Badges without overlapping on mobile */
     .phone-stage-wrapper {
-        margin-left: 0;
-        width: 100%;
-        max-width: 380px;
-        margin: 0 auto;
+        margin-left: 0 !important;
+        width: 100% !important;
+        max-width: 380px !important;
+        margin: 0 auto !important;
     }
 
     .phone-stage {
-        transform: none;
-        display: grid;
+        transform: none !important;
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
         grid-template-areas:
             "phone phone"
             "card1 card3"
-            "card2 card4";
-        gap: 12px;
-        justify-items: center;
-        align-items: center;
-        width: 100%;
+            "card2 card4" !important;
+        gap: 12px !important;
+        justify-items: center !important;
+        align-items: center !important;
+        width: 100% !important;
+        max-width: 360px !important;
+        margin: 0 auto !important;
     }
 
     .phone-glow-effect {
@@ -1904,26 +1907,30 @@ footer {
     }
 
     .smartphone-device {
-        grid-area: phone;
-        width: min(270px, 75vw);
-        margin: 0 auto 16px auto;
+        grid-area: phone !important;
+        width: min(270px, 75vw) !important;
+        margin: 0 auto 16px auto !important;
     }
 
     .floating-card {
-        position: static;
-        animation: none;
-        width: 100%;
-        box-sizing: border-box;
-        padding: 10px 14px;
-        gap: 10px;
+        position: static !important;
+        top: auto !important;
+        left: auto !important;
+        right: auto !important;
+        bottom: auto !important;
+        animation: none !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+        padding: 10px 12px !important;
+        gap: 10px !important;
         transform: none !important;
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45) !important;
     }
 
-    .floating-one { grid-area: card1; }
-    .floating-two { grid-area: card2; }
-    .floating-three { grid-area: card3; }
-    .floating-four { grid-area: card4; }
+    .floating-one { grid-area: card1 !important; }
+    .floating-two { grid-area: card2 !important; }
+    .floating-three { grid-area: card3 !important; }
+    .floating-four { grid-area: card4 !important; }
 
     .floating-card .badge-title {
         font-size: 0.85rem;
