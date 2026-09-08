@@ -556,7 +556,7 @@ h3 {
     display: flex;
     justify-content: center;
     align-items: center;
-    margin-left: -30px;
+    margin-left: 55px;
 }
 
 .phone-glow-effect {
@@ -711,25 +711,25 @@ h3 {
 
 .floating-one {
     top: 25px;
-    left: -80px;
+    left: -175px;
     animation-delay: 0s;
 }
 
 .floating-two {
     bottom: 140px;
-    left: -80px;
+    left: -175px;
     animation-delay: 1.5s;
 }
 
 .floating-three {
     top: 135px;
-    right: -105px;
+    right: -175px;
     animation-delay: 3s;
 }
 
 .floating-four {
-    bottom: 140px;
-    right: -105px;
+    bottom: 25px;
+    right: -180px;
     animation-delay: 4.5s;
 }
 
@@ -1759,62 +1759,51 @@ footer {
         grid-template-columns: repeat(2, 1fr);
     }
 
-    .hero {
-        padding: 40px 0 50px 0;
-    }
-
     .hero-grid {
-        grid-template-columns: 1.1fr 0.9fr;
-        gap: 24px;
-        align-items: center;
-        text-align: left;
-    }
-
-    .hero-copy {
-        margin: 0;
-        display: block;
-        text-align: left;
-    }
-
-    .hero-copy h1 {
-        font-size: clamp(2rem, 3.6vw, 2.8rem);
-        margin-bottom: 18px;
-    }
-
-    .hero-description {
-        font-size: 1rem;
-        margin-bottom: 28px;
-    }
-
-    .hero-actions {
-        justify-content: flex-start;
-        gap: 12px;
-        margin-bottom: 30px;
-    }
-
-    .hero-actions .button {
-        padding: 12px 20px;
-        font-size: 0.92rem;
-    }
-
-    .hero-info {
-        justify-content: flex-start;
-        gap: 16px;
-        padding-top: 18px;
-    }
-
-    .hero-info-item {
-        font-size: 0.82rem;
+        grid-template-columns: 1fr;
+        gap: 40px;
+        text-align: center;
     }
 
     .phone-stage-wrapper {
-        margin-left: -20px;
-        margin-top: 0;
+        margin-left: 0;
+        margin-top: 20px;
     }
 
     .phone-stage {
-        transform: scale(0.78);
+        transform: scale(0.92);
         transform-origin: center center;
+    }
+
+    .floating-one {
+        left: -140px;
+    }
+
+    .floating-two {
+        left: -140px;
+    }
+
+    .floating-three {
+        right: -140px;
+    }
+
+    .floating-four {
+        right: -140px;
+    }
+
+    .hero-copy {
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .hero-actions {
+        justify-content: center;
+    }
+
+    .hero-info {
+        justify-content: center;
     }
 
     .showcase-grid {
@@ -1888,10 +1877,7 @@ footer {
         grid-template-columns: 1fr;
     }
 
-}
-
-@media (max-width: 767px) {
-    /* Hero Phone on mobile: Masquer le smartphone en haut de page uniquement sur smartphone */
+    /* Hero Phone on mobile: Masquer le smartphone en haut de page uniquement sur mobile */
     .phone-stage-wrapper {
         display: none !important;
     }
