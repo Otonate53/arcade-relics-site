@@ -1877,31 +1877,9 @@ footer {
         grid-template-columns: 1fr;
     }
 
-    /* Hero Phone on mobile: Hide floating cards completely on smartphone */
+    /* Hero Phone on mobile: Masquer le smartphone en haut de page uniquement sur mobile */
     .phone-stage-wrapper {
-        margin-left: 0 !important;
-        width: 100% !important;
-        max-width: 340px !important;
-        margin: 0 auto !important;
-    }
-
-    .phone-stage {
-        transform: none !important;
-        display: flex !important;
-        justify-content: center !important;
-        align-items: center !important;
-        width: 100% !important;
-        margin: 0 auto !important;
-    }
-
-    .phone-glow-effect {
-        width: 260px;
-        height: 380px;
-    }
-
-    .smartphone-device {
-        width: min(290px, 80vw) !important;
-        margin: 0 auto !important;
+        display: none !important;
     }
 
     /* Masquer les 4 encadrés uniquement sur smartphone */
