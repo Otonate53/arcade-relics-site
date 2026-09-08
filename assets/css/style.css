@@ -946,17 +946,20 @@ h3 {
 
 .carousel-slide {
     flex: 0 0 100%;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 10px;
+    padding: 10px 16px;
     min-height: 480px;
 }
 
 .carousel-img {
+    max-width: 100%;
+    max-height: 520px;
     width: auto;
-    max-width: 420px;
-    max-height: 560px;
     height: auto;
     display: block;
     object-fit: contain;
@@ -965,9 +968,9 @@ h3 {
 }
 
 .carousel-img.carousel-img-landscape {
-    max-width: 780px;
-    max-height: 540px;
-    width: 100%;
+    max-width: 100%;
+    max-height: 480px;
+    width: auto;
 }
 
 .carousel-img:hover {
@@ -1758,12 +1761,34 @@ footer {
 
     .hero-grid {
         grid-template-columns: 1fr;
-        gap: 50px;
+        gap: 40px;
         text-align: center;
     }
 
     .phone-stage-wrapper {
         margin-left: 0;
+        margin-top: 20px;
+    }
+
+    .phone-stage {
+        transform: scale(0.92);
+        transform-origin: center center;
+    }
+
+    .floating-one {
+        left: -140px;
+    }
+
+    .floating-two {
+        left: -140px;
+    }
+
+    .floating-three {
+        right: -140px;
+    }
+
+    .floating-four {
+        right: -140px;
     }
 
     .hero-copy {
@@ -1788,11 +1813,25 @@ footer {
 
     .steps-grid {
         grid-template-columns: 1fr;
-        gap: 20px;
+        gap: 24px;
     }
 
     .step-arrow {
         display: none;
+    }
+
+    /* Carousel adjustments for tablet */
+    .carousel-slide {
+        min-height: 420px;
+        padding: 10px 14px;
+    }
+
+    .carousel-img {
+        max-height: 420px;
+    }
+
+    .carousel-img.carousel-img-landscape {
+        max-height: 320px;
     }
 }
 
@@ -1838,29 +1877,97 @@ footer {
         grid-template-columns: 1fr;
     }
 
-    .floating-one {
-        left: -10px;
-        top: 15px;
+    /* Hero Phone & Badges without overlapping on mobile */
+    .phone-stage-wrapper {
+        margin-left: 0;
+        width: 100%;
+        max-width: 380px;
+        margin: 0 auto;
     }
 
-    .floating-two {
-        left: -10px;
-        bottom: 95px;
-    }
-
-    .floating-three {
-        right: -10px;
-        top: 90px;
+    .phone-stage {
         transform: none;
+        display: grid;
+        grid-template-areas:
+            "phone phone"
+            "card1 card3"
+            "card2 card4";
+        gap: 12px;
+        justify-items: center;
+        align-items: center;
+        width: 100%;
     }
 
-    .floating-four {
-        right: -10px;
-        bottom: 15px;
+    .phone-glow-effect {
+        width: 260px;
+        height: 380px;
     }
 
     .smartphone-device {
-        width: 270px;
+        grid-area: phone;
+        width: min(270px, 75vw);
+        margin: 0 auto 16px auto;
+    }
+
+    .floating-card {
+        position: static;
+        animation: none;
+        width: 100%;
+        box-sizing: border-box;
+        padding: 10px 14px;
+        gap: 10px;
+        transform: none !important;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
+    }
+
+    .floating-one { grid-area: card1; }
+    .floating-two { grid-area: card2; }
+    .floating-three { grid-area: card3; }
+    .floating-four { grid-area: card4; }
+
+    .floating-card .badge-title {
+        font-size: 0.85rem;
+    }
+
+    .floating-card .badge-subtitle {
+        font-size: 0.74rem;
+    }
+
+    .floating-icon {
+        width: 32px;
+        height: 32px;
+    }
+
+    .floating-icon svg {
+        width: 16px;
+        height: 16px;
+    }
+
+    /* Carousel adjustments for mobile */
+    .collector-stage {
+        padding: 0 4px;
+    }
+
+    .carousel-slide {
+        min-height: 340px;
+        padding: 8px;
+    }
+
+    .carousel-img {
+        max-height: 350px;
+    }
+
+    .carousel-img.carousel-img-landscape {
+        max-height: 220px;
+    }
+
+    .collector-glow {
+        width: 100%;
+        height: 260px;
+    }
+
+    .cta-card {
+        padding: 45px 20px;
     }
 
     .footer-inner {
@@ -1876,5 +1983,48 @@ footer {
     .footer-nav {
         flex-direction: column;
         gap: 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    .text-nowrap {
+        white-space: normal;
+    }
+
+    .hero-actions {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .hero-actions .button {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .hero-info {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .carousel-slide {
+        min-height: 280px;
+        padding: 6px;
+    }
+
+    .carousel-img {
+        max-height: 300px;
+    }
+
+    .carousel-img.carousel-img-landscape {
+        max-height: 180px;
+    }
+
+    .carousel-controls-bar {
+        gap: 12px;
+    }
+
+    .carousel-arrow {
+        width: 40px;
+        height: 40px;
     }
 }
