@@ -1759,51 +1759,66 @@ footer {
         grid-template-columns: repeat(2, 1fr);
     }
 
+    .hero {
+        padding: 40px 0 50px 0;
+    }
+
     .hero-grid {
-        grid-template-columns: 1fr;
-        gap: 40px;
-        text-align: center;
+        grid-template-columns: 1.1fr 0.9fr;
+        gap: 24px;
+        align-items: center;
+        text-align: left;
+    }
+
+    .hero-copy {
+        margin: 0;
+        display: block;
+        text-align: left;
+    }
+
+    .hero-copy h1 {
+        font-size: clamp(2rem, 3.6vw, 2.8rem);
+        margin-bottom: 18px;
+    }
+
+    .hero-description {
+        font-size: 1rem;
+        margin-bottom: 28px;
+    }
+
+    .hero-actions {
+        justify-content: flex-start;
+        gap: 12px;
+        margin-bottom: 30px;
+    }
+
+    .hero-actions .button {
+        padding: 12px 20px;
+        font-size: 0.92rem;
+    }
+
+    .hero-info {
+        justify-content: flex-start;
+        gap: 16px;
+        padding-top: 18px;
+    }
+
+    .hero-info-item {
+        font-size: 0.82rem;
     }
 
     .phone-stage-wrapper {
         margin-left: 0;
-        margin-top: 20px;
+        margin-top: 0;
     }
 
     .phone-stage {
-        transform: scale(0.92);
+        transform: scale(0.78);
         transform-origin: center center;
     }
 
-    .floating-one {
-        left: -140px;
-    }
-
-    .floating-two {
-        left: -140px;
-    }
-
-    .floating-three {
-        right: -140px;
-    }
-
-    .floating-four {
-        right: -140px;
-    }
-
-    .hero-copy {
-        margin: 0 auto;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-    }
-
-    .hero-actions {
-        justify-content: center;
-    }
-
-    .hero-info {
-        justify-content: center;
+    .floating-card {
+        display: none;
     }
 
     .showcase-grid {
@@ -1877,7 +1892,10 @@ footer {
         grid-template-columns: 1fr;
     }
 
-    /* Hero Phone on mobile: Masquer le smartphone en haut de page uniquement sur mobile */
+}
+
+@media (max-width: 767px) {
+    /* Hero Phone on mobile: Masquer le smartphone en haut de page uniquement sur smartphone */
     .phone-stage-wrapper {
         display: none !important;
     }
