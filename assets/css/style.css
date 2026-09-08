@@ -1877,27 +1877,20 @@ footer {
         grid-template-columns: 1fr;
     }
 
-    /* Hero Phone & Badges without overlapping on mobile */
+    /* Hero Phone on mobile: Hide floating cards completely on smartphone */
     .phone-stage-wrapper {
         margin-left: 0 !important;
         width: 100% !important;
-        max-width: 380px !important;
+        max-width: 340px !important;
         margin: 0 auto !important;
     }
 
     .phone-stage {
         transform: none !important;
-        display: grid !important;
-        grid-template-columns: 1fr 1fr !important;
-        grid-template-areas:
-            "phone phone"
-            "card1 card3"
-            "card2 card4" !important;
-        gap: 12px !important;
-        justify-items: center !important;
+        display: flex !important;
+        justify-content: center !important;
         align-items: center !important;
         width: 100% !important;
-        max-width: 360px !important;
         margin: 0 auto !important;
     }
 
@@ -1907,42 +1900,13 @@ footer {
     }
 
     .smartphone-device {
-        grid-area: phone !important;
-        width: min(270px, 75vw) !important;
-        margin: 0 auto 16px auto !important;
+        width: min(290px, 80vw) !important;
+        margin: 0 auto !important;
     }
 
+    /* Masquer les 4 encadrés uniquement sur smartphone */
     .floating-card {
-        position: static !important;
-        top: auto !important;
-        left: auto !important;
-        right: auto !important;
-        bottom: auto !important;
-        animation: none !important;
-        width: 100% !important;
-        box-sizing: border-box !important;
-        padding: 10px 12px !important;
-        gap: 10px !important;
-        transform: none !important;
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45) !important;
-    }
-
-    .floating-one { grid-area: card1 !important; }
-    .floating-two { grid-area: card2 !important; }
-    .floating-three { grid-area: card3 !important; }
-    .floating-four { grid-area: card4 !important; }
-
-    .floating-card .badge-title {
-        font-size: 0.85rem;
-    }
-
-    .floating-card .badge-subtitle {
-        font-size: 0.74rem;
-    }
-
-    .floating-icon {
-        width: 32px;
-        height: 32px;
+        display: none !important;
     }
 
     .floating-icon svg {
