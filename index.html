@@ -802,7 +802,11 @@
                 </div>
 
                 <!-- Google Authentication Button -->
-                <a class="google-login-button" id="googleLoginBtn" href="https://accounts.google.com" target="_blank" rel="noopener noreferrer" aria-label="Se connecter avec un compte Google">
+                <button
+                    type="button"
+                    class="google-login-button"
+                    id="googleLoginBtn"
+                    aria-label="Se connecter avec un compte Google">
                     <div class="google-icon-wrapper">
                         <svg class="google-icon" viewBox="0 0 24 24" aria-hidden="true">
                             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -812,7 +816,7 @@
                         </svg>
                     </div>
                     <span class="google-btn-text">Continuer avec Google</span>
-                </a>
+                </button>
             </div>
         </div>
     </div>
@@ -820,5 +824,6 @@
     <!-- Scripts -->
     <script src="assets/js/main.js?v=20260908_1445" defer></script>
     <script src="assets/js/connexion.js?v=20260910" defer></script>
+    <script type="module" src="assets/js/firebase-auth.js?v=1"></script>
 </body>
 </html>
