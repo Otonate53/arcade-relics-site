@@ -66,6 +66,8 @@ if (googleLoginBtn) {
                     user.uid
                 );
 
+                window.location.href = "/compte.html";
+
             } catch (error) {
 
                 console.error(
@@ -106,3 +108,5 @@ onAuthStateChanged(
 
     }
 );
+
+export { app, auth };
