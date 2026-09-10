@@ -283,6 +283,54 @@ function processCollectionData(data) {
     }
 }
 
+// Helper to resolve platform name from console ID or object
+function getPlatformDisplayName(game) {
+    if (!game) return "Jeu";
+    const rawConsole = game.console || game.platform || game.system || "";
+    if (!rawConsole) return "Jeu";
+
+    if (Array.isArray(parsedData.consoles)) {
+        const found = parsedData.consoles.find(c => {
+            if (!c) return false;
+            if (typeof c === "string") return c === rawConsole;
+            return (
+                String(c.id) === String(rawConsole) ||
+                String(c.consoleId) === String(rawConsole) ||
+                String(c.console_id) === String(rawConsole) ||
+                String(c.key) === String(rawConsole) ||
+                String(c.slug) === String(rawConsole)
+            );
+        });
+
+        if (found) {
+            if (typeof found === "string") return found;
+            return found.name || found.title || found.consoleName || found.nom || found.label || rawConsole;
+        }
+    }
+
+    if (game.consoleName) return game.consoleName;
+    if (game.platformName) return game.platformName;
+    if (game.systemName) return game.systemName;
+
+    return rawConsole;
+}
+
+// Helper to get game cover URL
+function getGameCoverUrl(game) {
+    if (!game) return "";
+    return (
+        game.coverUrl ||
+        game.cover ||
+        game.image ||
+        game.imageUrl ||
+        game.thumbnail ||
+        game.boxArt ||
+        game.box_art ||
+        game.picture ||
+        ""
+    );
+}
+
 // 5. Render Current View
 function renderCurrentView() {
     if (!collectionList) return;
@@ -303,7 +351,7 @@ function renderCurrentView() {
     if (query) {
         itemsToRender = itemsToRender.filter(item => {
             const title = (item.title || item.name || "").toLowerCase();
-            const platform = (item.console || item.platform || item.brand || "").toLowerCase();
+            const platform = (getPlatformDisplayName(item) || item.brand || "").toLowerCase();
             return title.includes(query) || platform.includes(query);
         });
     }
@@ -323,7 +371,7 @@ function renderCurrentView() {
             const card = document.createElement("div");
             card.className = "console-card";
 
-            const name = consoleItem.name || consoleItem.title || "Console";
+            const name = consoleItem.name || consoleItem.title || consoleItem.consoleName || consoleItem.nom || "Console";
             const brand = consoleItem.brand || consoleItem.manufacturer || consoleItem.company || "Retro / Moderne";
 
             card.innerHTML = `
@@ -342,8 +390,8 @@ function renderCurrentView() {
             card.className = "game-card";
 
             const title = game.title || game.name || "Jeu sans titre";
-            const platform = game.console || game.platform || game.system || "Jeu";
-            const coverUrl = game.coverUrl || game.cover || game.image || game.boxArt || "";
+            const platform = getPlatformDisplayName(game);
+            const coverUrl = getGameCoverUrl(game);
 
             const coverHtml = coverUrl
                 ? `<img src="${escapeHtml(coverUrl)}" alt="${escapeHtml(title)}" class="game-cover-img" loading="lazy">`
