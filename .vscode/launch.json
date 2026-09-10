@@ -1,11 +1,25 @@
 {
+    "version": "0.2.0",
     "configurations": [
         {
-            "name": "Launch Chrome",
+            "name": "Prévisualiser le site (Chrome)",
+            "request": "launch",
+            "type": "chrome",
+            "file": "${workspaceFolder}/index.html"
+        },
+        {
+            "name": "Prévisualiser le site (Edge)",
+            "request": "launch",
+            "type": "msedge",
+            "file": "${workspaceFolder}/index.html"
+        },
+        {
+            "name": "Prévisualiser via Serveur Local (localhost:8080)",
             "request": "launch",
             "type": "chrome",
             "url": "http://localhost:8080",
-            "webRoot": "${workspaceFolder}"
+            "webRoot": "${workspaceFolder}",
+            "preLaunchTask": "Démarrer le serveur local"
         }
     ]
 }
