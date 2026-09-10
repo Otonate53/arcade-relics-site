@@ -122,30 +122,133 @@ async function gunzipBase64(base64) {
     return await new Response(stream).text();
 }
 
-// 4. Process Data
 function processCollectionData(data) {
-    console.log("Données Arcade Relics reçues :", data);
 
-    const items = Array.isArray(data.items) ? data.items : [];
-    const owned = Array.isArray(data.owned) ? data.owned : [];
-    const wishlist = Array.isArray(data.wishlist) ? data.wishlist : [];
-    const consoles = Array.isArray(data.consoles) ? data.consoles : [];
+    console.log(
+        "Données Arcade Relics reçues :",
+        data
+    );
 
-    const ownedIds = new Set(owned.map(id => String(id)));
-    const wishlistIds = new Set(wishlist.map(id => String(id)));
+    /*
+     * Le snapshot Android stocke les données
+     * dans l'objet "values".
+     */
+    const values =
+        data &&
+        data.values &&
+        typeof data.values === "object"
+            ? data.values
+            : data;
 
-    parsedData.ownedGames = items.filter(item => ownedIds.has(String(item.id)));
-    parsedData.wishlistGames = items.filter(item => wishlistIds.has(String(item.id)));
-    parsedData.consoles = consoles;
+    console.log(
+        "Valeurs Arcade Relics :",
+        values
+    );
 
-    // Update Counts & Badges
-    if (gamesCount) gamesCount.textContent = parsedData.ownedGames.length;
-    if (consolesCount) consolesCount.textContent = parsedData.consoles.length;
-    if (wishlistCount) wishlistCount.textContent = parsedData.wishlistGames.length;
+    const items =
+        Array.isArray(values.otr_items)
+            ? values.otr_items
+            : [];
 
-    if (badgeGames) badgeGames.textContent = parsedData.ownedGames.length;
-    if (badgeConsoles) badgeConsoles.textContent = parsedData.consoles.length;
-    if (badgeWishlist) badgeWishlist.textContent = parsedData.wishlistGames.length;
+    const owned =
+        Array.isArray(values.otr_owned)
+            ? values.otr_owned
+            : [];
+
+    const wishlist =
+        Array.isArray(values.otr_wishlist)
+            ? values.otr_wishlist
+            : [];
+
+    const consoles =
+        Array.isArray(values.otr_user_consoles)
+            ? values.otr_user_consoles
+            : [];
+
+    console.log(
+        "Items :",
+        items
+    );
+
+    console.log(
+        "Jeux possédés IDs :",
+        owned
+    );
+
+    console.log(
+        "Wishlist IDs :",
+        wishlist
+    );
+
+    console.log(
+        "Consoles :",
+        consoles
+    );
+
+    const ownedIds =
+        new Set(
+            owned.map(
+                id => String(id)
+            )
+        );
+
+    const wishlistIds =
+        new Set(
+            wishlist.map(
+                id => String(id)
+            )
+        );
+
+    parsedData.ownedGames =
+        items.filter(
+            item =>
+                ownedIds.has(
+                    String(item.id)
+                )
+        );
+
+    parsedData.wishlistGames =
+        items.filter(
+            item =>
+                wishlistIds.has(
+                    String(item.id)
+                )
+        );
+
+    parsedData.consoles =
+        consoles;
+
+    // Compteurs
+    if (gamesCount) {
+        gamesCount.textContent =
+            parsedData.ownedGames.length;
+    }
+
+    if (consolesCount) {
+        consolesCount.textContent =
+            parsedData.consoles.length;
+    }
+
+    if (wishlistCount) {
+        wishlistCount.textContent =
+            parsedData.wishlistGames.length;
+    }
+
+    // Badges des onglets
+    if (badgeGames) {
+        badgeGames.textContent =
+            parsedData.ownedGames.length;
+    }
+
+    if (badgeConsoles) {
+        badgeConsoles.textContent =
+            parsedData.consoles.length;
+    }
+
+    if (badgeWishlist) {
+        badgeWishlist.textContent =
+            parsedData.wishlistGames.length;
+    }
 }
 
 // 5. Render Current View
