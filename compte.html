@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Votre collection de jeux vidéo, consoles et wishlist Arcade Relics synchronisée avec votre compte Google.">
+    <meta name="theme-color" content="#06060d">
+
+    <title>Ma Collection — Arcade Relics</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Favicons -->
+    <link rel="icon" href="assets/img/favicon.ico?v=1" sizes="any">
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicon-32x32.png?v=1">
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/img/favicon-16x16.png?v=1">
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/img/apple-touch-icon.png?v=1">
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="assets/css/style.css?v=20260908_2016">
+    <link rel="stylesheet" href="assets/css/compte.css?v=20260910">
+</head>
+
+<body class="account-body">
+    <!-- Ambient Neon Background Glows -->
+    <div class="ambient-glow glow-cyan" aria-hidden="true"></div>
+    <div class="ambient-glow glow-pink" aria-hidden="true"></div>
+    <div class="ambient-glow glow-purple" aria-hidden="true"></div>
+
+    <!-- Navigation Bar -->
+    <header class="account-navbar">
+        <div class="container account-nav-inner">
+            <a class="brand brand-header-logo" href="index.html" aria-label="Retour au site Arcade Relics">
+                <img src="assets/img/logo-arcade-relics.png?v=5" alt="Arcade Relics" class="header-logo-image">
+            </a>
+
+            <div class="account-user-actions">
+                <a href="index.html" class="button button-secondary" style="padding: 8px 16px; font-size: 0.85rem;">
+                    <span>← Accueil</span>
+                </a>
+
+                <div class="user-email-badge" title="Connecté avec Google">
+                    <span class="user-status-dot"></span>
+                    <span id="userEmail">Chargement...</span>
+                </div>
+
+                <button type="button" class="button button-secondary btn-signout" id="logoutBtn" aria-label="Se déconnecter">
+                    <span>Déconnexion</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Dashboard -->
+    <main class="account-main">
+        <div class="container">
+            <!-- Loading State -->
+            <div id="loading" class="state-container">
+                <div class="collection-spinner"></div>
+                <h2 style="font-size: 1.3rem; color: #ffffff; margin-top: 10px;">Chargement de votre collection...</h2>
+                <p style="color: var(--text-muted); font-size: 0.9rem;">Récupération et décompression de vos données Cloud Arcade Relics</p>
+            </div>
+
+            <!-- Error State -->
+            <div id="errorMessage" class="state-container" style="display: none;">
+                <div class="empty-icon">⚠️</div>
+                <h2 class="empty-title">Impossible de charger la collection</h2>
+                <p class="empty-text" id="errorDetail">Aucune sauvegarde cloud trouvée pour ce compte.</p>
+                <div style="margin-top: 16px; display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;">
+                    <a href="index.html" class="button button-secondary">Retour à l'accueil</a>
+                    <button type="button" class="button button-primary" onclick="window.location.reload();">Réessayer</button>
+                </div>
+            </div>
+
+            <!-- Account Content (Shown once loaded) -->
+            <div id="accountContent" style="display: none;">
+                <!-- Header & Cloud Sync Banner -->
+                <div class="collection-hero">
+                    <div class="collection-header-row">
+                        <div class="collection-title-wrap">
+                            <h1>Ma Collection <span class="gradient-text">Arcade Relics</span></h1>
+                            <div class="cloud-sync-status">
+                                <svg class="icon" viewBox="0 0 24 24" style="stroke: var(--cyan); width: 18px; height: 18px;">
+                                    <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/>
+                                </svg>
+                                <span>Synchronisée en direct avec votre application mobile</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Stats Cards -->
+                    <div class="stats-cards-grid">
+                        <div class="stat-box">
+                            <div class="stat-box-icon" style="color: var(--cyan);">🎮</div>
+                            <div>
+                                <div class="stat-box-num" id="gamesCount">0</div>
+                                <div class="stat-box-label">Jeux possédés</div>
+                            </div>
+                        </div>
+
+                        <div class="stat-box">
+                            <div class="stat-box-icon" style="color: var(--pink);">🕹️</div>
+                            <div>
+                                <div class="stat-box-num" id="consolesCount">0</div>
+                                <div class="stat-box-label">Consoles</div>
+                            </div>
+                        </div>
+
+                        <div class="stat-box">
+                            <div class="stat-box-icon" style="color: var(--yellow);">⭐</div>
+                            <div>
+                                <div class="stat-box-num" id="wishlistCount">0</div>
+                                <div class="stat-box-label">En Wishlist</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Controls: Tabs & Search -->
+                <div class="collection-controls-bar">
+                    <div class="collection-tabs" role="tablist">
+                        <button type="button" class="tab-button active" id="tabGames" role="tab" aria-selected="true">
+                            <span>🎮 Mes Jeux</span>
+                            <span class="tab-badge" id="badgeGames">0</span>
+                        </button>
+                        <button type="button" class="tab-button" id="tabConsoles" role="tab" aria-selected="false">
+                            <span>🕹️ Consoles</span>
+                            <span class="tab-badge" id="badgeConsoles">0</span>
+                        </button>
+                        <button type="button" class="tab-button" id="tabWishlist" role="tab" aria-selected="false">
+                            <span>⭐ Wishlist</span>
+                            <span class="tab-badge" id="badgeWishlist">0</span>
+                        </button>
+                    </div>
+
+                    <div class="search-box-wrap">
+                        <svg class="icon search-icon" viewBox="0 0 24 24" aria-hidden="true">
+                            <circle cx="11" cy="11" r="8"/>
+                            <path d="m21 21-4.3-4.3"/>
+                        </svg>
+                        <input 
+                            type="search" 
+                            id="collectionSearch" 
+                            class="collection-search-input" 
+                            placeholder="Rechercher un jeu, une console..." 
+                            aria-label="Rechercher dans votre collection"
+                        >
+                    </div>
+                </div>
+
+                <!-- Dynamic Items Grid -->
+                <div class="items-grid" id="collectionList">
+                    <!-- Cards will be dynamically injected here by compte.js -->
+                </div>
+
+                <!-- Empty tab state -->
+                <div id="emptyTabState" class="state-container" style="display: none;">
+                    <div class="empty-icon">🎮</div>
+                    <h3 class="empty-title">Aucun élément trouvé</h3>
+                    <p class="empty-text">Aucun jeu ou console ne correspond à votre recherche dans cet onglet.</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Module Script -->
+    <script type="module" src="assets/js/compte.js?v=20260910"></script>
+</body>
+</html>

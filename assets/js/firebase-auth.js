@@ -66,7 +66,7 @@ if (googleLoginBtn) {
                     user.uid
                 );
 
-                window.location.href = "/compte.html";
+                window.location.href = "compte.html";
 
             } catch (error) {
 
@@ -97,6 +97,25 @@ onAuthStateChanged(
                 "UID :",
                 user.uid
             );
+
+            // Update navbar on index.html to link directly to collection
+            const navLoginBtn = document.getElementById("navLoginBtn");
+            const navLinkMobileLogin = document.getElementById("navLinkMobileLogin");
+            if (navLoginBtn) {
+                navLoginBtn.classList.add("logged-in");
+                navLoginBtn.href = "compte.html";
+                navLoginBtn.innerHTML = `
+                    <span style="width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);display:inline-block;"></span>
+                    <span class="nav-login-label">Ma Collection</span>
+                `;
+            }
+            if (navLinkMobileLogin) {
+                navLinkMobileLogin.href = "compte.html";
+                navLinkMobileLogin.innerHTML = `
+                    <span style="width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);display:inline-block;"></span>
+                    <span>Ma Collection</span>
+                `;
+            }
 
         } else {
 
