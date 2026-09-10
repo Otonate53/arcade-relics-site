@@ -122,6 +122,38 @@ async function gunzipBase64(base64) {
     return await new Response(stream).text();
 }
 
+function parseStoredArray(value) {
+
+    if (Array.isArray(value)) {
+        return value;
+    }
+
+    if (typeof value === "string") {
+
+        try {
+
+            const parsed =
+                JSON.parse(value);
+
+            return Array.isArray(parsed)
+                ? parsed
+                : [];
+
+        } catch (error) {
+
+            console.error(
+                "Impossible de lire une donnée Arcade Relics :",
+                value,
+                error
+            );
+
+            return [];
+        }
+    }
+
+    return [];
+}
+
 function processCollectionData(data) {
 
     console.log(
@@ -146,24 +178,24 @@ function processCollectionData(data) {
     );
 
     const items =
-        Array.isArray(values.otr_items)
-            ? values.otr_items
-            : [];
+        parseStoredArray(
+            values.otr_items
+        );
 
     const owned =
-        Array.isArray(values.otr_owned)
-            ? values.otr_owned
-            : [];
+        parseStoredArray(
+            values.otr_owned
+        );
 
     const wishlist =
-        Array.isArray(values.otr_wishlist)
-            ? values.otr_wishlist
-            : [];
+        parseStoredArray(
+            values.otr_wishlist
+        );
 
     const consoles =
-        Array.isArray(values.otr_user_consoles)
-            ? values.otr_user_consoles
-            : [];
+        parseStoredArray(
+            values.otr_user_consoles
+        );
 
     console.log(
         "Items :",
