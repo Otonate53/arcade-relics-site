@@ -528,25 +528,38 @@
     position: absolute;
     top: 18px;
     right: 18px;
-    z-index: 10;
-    width: 36px;
-    height: 36px;
+    z-index: 20;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid var(--border);
-    color: var(--text-muted);
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #ffffff;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: all var(--transition-fast);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+.item-modal-close-btn svg {
+    width: 20px;
+    height: 20px;
+    stroke: #ffffff;
+    transition: stroke 0.2s ease;
 }
 
 .item-modal-close-btn:hover {
-    background: rgba(255, 45, 164, 0.2);
+    background: rgba(255, 45, 164, 0.25);
     border-color: var(--pink);
     color: #ffffff;
-    transform: rotate(90deg);
+    transform: rotate(90deg) scale(1.08);
+    box-shadow: 0 0 20px rgba(255, 45, 164, 0.45);
+}
+
+.item-modal-close-btn:hover svg {
+    stroke: #ffffff;
 }
 
 /* Modal Hero */
