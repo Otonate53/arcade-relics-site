@@ -162,8 +162,6 @@ onAuthStateChanged(
 
             localStorage.removeItem("arcade_relics_logged_in");
             localStorage.removeItem("arcade_relics_user_email");
-            localStorage.removeItem("arcade_relics_drive_token");
-            sessionStorage.removeItem("arcade_relics_drive_token");
 
             if (navLoginBtn) {
                 navLoginBtn.classList.remove("logged-in");

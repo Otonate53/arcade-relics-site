@@ -24,7 +24,7 @@
 
     <!-- Stylesheets -->
     <link rel="stylesheet" href="assets/css/style.css?v=20260908_2016">
-    <link rel="stylesheet" href="assets/css/compte.css?v=20260911_profile2">
+    <link rel="stylesheet" href="assets/css/compte.css?v=20260911_cache">
 </head>
 
 <body class="account-body">
@@ -96,6 +96,20 @@
                                 <span>Synchronisée en direct avec votre application mobile</span>
                             </div>
                         </div>
+                    </div>
+
+                    <!-- Google Drive Sync Banner (affiché si les photos nécessitent une autorisation) -->
+                    <div id="driveSyncBanner" class="drive-sync-banner" style="display: none;">
+                        <div class="drive-sync-info">
+                            <div class="drive-sync-icon">📷</div>
+                            <div class="drive-sync-text">
+                                <strong>Photos de collection disponibles sur Google Drive</strong>
+                                <span>Autorisez l'accès à votre backup pour afficher et mémoriser toutes vos photos de jeux et consoles.</span>
+                            </div>
+                        </div>
+                        <button type="button" class="button button-primary drive-sync-btn" id="driveSyncBtn">
+                            <span>🔄 Charger mes photos</span>
+                        </button>
                     </div>
                 </div>
 
@@ -239,7 +253,7 @@
     <!-- Module Script -->
     <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js">
     </script>
-    <script type="module" src="assets/js/compte.js?v=20260911_auth">
+    <script type="module" src="assets/js/compte.js?v=20260911_cache">
     </script>
 </body>
 

@@ -5,7 +5,9 @@ import {
 
 import {
     onAuthStateChanged,
-    signOut
+    signOut,
+    signInWithPopup,
+    GoogleAuthProvider
 } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
 
 import {
@@ -84,6 +86,171 @@ async function getZipImageUrl(
 
     return objectUrl;
 }
+
+/* =========================================================================
+ * INDEXEDDB CACHE FOR PHOTOS & MANIFEST (Permanent offline cache)
+ * ========================================================================= */
+const DB_NAME = "ArcadeRelicsCache";
+const DB_VERSION = 1;
+const STORE_NAME = "media";
+
+function openCacheDB() {
+    return new Promise((resolve, reject) => {
+        const req = indexedDB.open(DB_NAME, DB_VERSION);
+        req.onupgradeneeded = (e) => {
+            const db = e.target.result;
+            if (!db.objectStoreNames.contains(STORE_NAME)) {
+                db.createObjectStore(STORE_NAME);
+            }
+        };
+        req.onsuccess = (e) => resolve(e.target.result);
+        req.onerror = () => reject(req.error);
+    });
+}
+
+async function saveToCache(entries) {
+    try {
+        const db = await openCacheDB();
+        const tx = db.transaction(STORE_NAME, "readwrite");
+        const store = tx.objectStore(STORE_NAME);
+        for (const { key, val } of entries) {
+            store.put(val, key);
+        }
+        await new Promise((res) => { tx.oncomplete = res; });
+    } catch (err) {
+        console.warn("Erreur sauvegarde IndexedDB :", err);
+    }
+}
+
+async function getAllFromCache() {
+    try {
+        const db = await openCacheDB();
+        const tx = db.transaction(STORE_NAME, "readonly");
+        const store = tx.objectStore(STORE_NAME);
+        const req = store.openCursor();
+        const items = [];
+        return new Promise((resolve) => {
+            req.onsuccess = (e) => {
+                const cursor = e.target.result;
+                if (cursor) {
+                    items.push({ key: cursor.key, val: cursor.value });
+                    cursor.continue();
+                } else {
+                    resolve(items);
+                }
+            };
+            req.onerror = () => resolve([]);
+        });
+    } catch (err) {
+        return [];
+    }
+}
+
+async function clearCacheDB() {
+    try {
+        const db = await openCacheDB();
+        const tx = db.transaction(STORE_NAME, "readwrite");
+        const store = tx.objectStore(STORE_NAME);
+        store.clear();
+        await new Promise((res) => { tx.oncomplete = res; });
+    } catch (err) {}
+}
+
+function applyEnrichedData(gameImages, wishlistImages, consoleImages, manifestItemsMap, manifestConsolesMap) {
+    if (parsedData.ownedGames) {
+        parsedData.ownedGames = parsedData.ownedGames.map(game => {
+            const id = String(game.id);
+            const extra = manifestItemsMap.get(id) || {};
+            const img = gameImages.get(id) || wishlistImages.get(id) || extra.image || game.driveImage || "";
+            return {
+                ...extra,
+                ...game,
+                driveImage: img
+            };
+        });
+    }
+
+    if (parsedData.wishlistGames) {
+        parsedData.wishlistGames = parsedData.wishlistGames.map(game => {
+            const id = String(game.id);
+            const extra = manifestItemsMap.get(id) || {};
+            const img = wishlistImages.get(id) || gameImages.get(id) || extra.image || game.driveImage || "";
+            return {
+                ...extra,
+                ...game,
+                driveImage: img
+            };
+        });
+    }
+
+    if (parsedData.consoles) {
+        parsedData.consoles = parsedData.consoles.map(consoleItem => {
+            const id = String(consoleItem.id);
+            const extra = manifestConsolesMap.get(id) || {};
+            const img = consoleImages.get(id) || extra.image || consoleItem.driveImage || "";
+            return {
+                ...extra,
+                ...consoleItem,
+                driveImage: img
+            };
+        });
+    }
+}
+
+async function loadCachedDataFromDB() {
+    try {
+        const items = await getAllFromCache();
+        if (!items || items.length === 0) return false;
+
+        const cachedGameImages = new Map();
+        const cachedWishlistImages = new Map();
+        const cachedConsoleImages = new Map();
+        let cachedManifestItemsMap = new Map();
+        let cachedManifestConsolesMap = new Map();
+
+        items.forEach(({ key, val }) => {
+            if (typeof key !== "string") return;
+            if (key.startsWith("game_")) {
+                const id = key.replace("game_", "");
+                const url = URL.createObjectURL(val);
+                driveImageObjectUrls.push(url);
+                cachedGameImages.set(id, url);
+            } else if (key.startsWith("wishlist_")) {
+                const id = key.replace("wishlist_", "");
+                const url = URL.createObjectURL(val);
+                driveImageObjectUrls.push(url);
+                cachedWishlistImages.set(id, url);
+            } else if (key.startsWith("console_")) {
+                const id = key.replace("console_", "");
+                const url = URL.createObjectURL(val);
+                driveImageObjectUrls.push(url);
+                cachedConsoleImages.set(id, url);
+            } else if (key === "__manifest_json__") {
+                try {
+                    const manifestJson = JSON.parse(val);
+                    const values = manifestJson.values || manifestJson;
+                    const bItems = parseBackupArray(values.otr_items || values.items);
+                    const bConsoles = parseBackupArray(values.otr_user_consoles || values.consoles);
+                    bItems.forEach(it => { if (it && it.id != null) cachedManifestItemsMap.set(String(it.id), it); });
+                    bConsoles.forEach(c => { if (c && c.id != null) cachedManifestConsolesMap.set(String(c.id), c); });
+                } catch (e) {}
+            }
+        });
+
+        const totalImages = cachedGameImages.size + cachedWishlistImages.size + cachedConsoleImages.size;
+        console.log("Photos restaurées depuis le cache local IndexedDB :", totalImages);
+
+        if (totalImages > 0) {
+            applyEnrichedData(cachedGameImages, cachedWishlistImages, cachedConsoleImages, cachedManifestItemsMap, cachedManifestConsolesMap);
+            return true;
+        }
+        return false;
+    } catch (err) {
+        console.warn("Erreur lecture cache local :", err);
+        return false;
+    }
+}
+
 async function loadGoogleDriveImages() {
 
     const accessToken =
@@ -219,11 +386,12 @@ async function loadGoogleDriveImages() {
      */
     let manifestItemsMap = new Map();
     let manifestConsolesMap = new Map();
+    let manifestRawText = "";
     const manifestFile = zip.file("manifest.json") || zip.file("backup.json");
     if (manifestFile) {
         try {
-            const manifestText = await manifestFile.async("string");
-            const manifestJson = JSON.parse(manifestText);
+            manifestRawText = await manifestFile.async("string");
+            const manifestJson = JSON.parse(manifestRawText);
             const values = manifestJson.values || manifestJson;
             const bItems = parseBackupArray(values.otr_items || values.items);
             const bConsoles = parseBackupArray(values.otr_user_consoles || values.consoles);
@@ -252,6 +420,11 @@ async function loadGoogleDriveImages() {
 
     driveImageObjectUrls.length = 0;
 
+
+    const entriesToCache = [];
+    if (manifestRawText) {
+        entriesToCache.push({ key: "__manifest_json__", val: manifestRawText });
+    }
 
     const gameImages =
         new Map();
@@ -297,6 +470,8 @@ async function loadGoogleDriveImages() {
             const blob =
                 await file.async("blob");
 
+            entriesToCache.push({ key: `game_${id}`, val: blob });
+
             const url =
                 URL.createObjectURL(blob);
 
@@ -328,6 +503,8 @@ async function loadGoogleDriveImages() {
 
             const blob =
                 await file.async("blob");
+
+            entriesToCache.push({ key: `wishlist_${id}`, val: blob });
 
             const url =
                 URL.createObjectURL(blob);
@@ -361,6 +538,8 @@ async function loadGoogleDriveImages() {
             const blob =
                 await file.async("blob");
 
+            entriesToCache.push({ key: `console_${id}`, val: blob });
+
             const url =
                 URL.createObjectURL(blob);
 
@@ -383,88 +562,14 @@ async function loadGoogleDriveImages() {
         }
     );
 
-
     /*
-     * Association avec les jeux Firestore et enrichissement via le manifest.
+     * Sauvegarde automatique dans le cache persistant IndexedDB
      */
-    parsedData.ownedGames =
-        parsedData.ownedGames.map(
-            game => {
-                const id = String(game.id);
-                const extra = manifestItemsMap.get(id) || {};
-                return {
-                    ...extra,
-                    ...game,
-                    driveImage:
-                        gameImages.get(id) ||
-                        wishlistImages.get(id) ||
-                        extra.image ||
-                        ""
-                };
-            }
-        );
+    if (entriesToCache.length > 0) {
+        saveToCache(entriesToCache);
+    }
 
-
-    /*
-     * Association avec la wishlist.
-     */
-    parsedData.wishlistGames =
-        parsedData.wishlistGames.map(
-            game => {
-                const id = String(game.id);
-                const extra = manifestItemsMap.get(id) || {};
-                return {
-                    ...extra,
-                    ...game,
-                    driveImage:
-                        wishlistImages.get(id) ||
-                        gameImages.get(id) ||
-                        extra.image ||
-                        ""
-                };
-            }
-        );
-
-
-    /*
-     * Association avec les consoles.
-     */
-    parsedData.consoles =
-        parsedData.consoles.map(
-            consoleItem => {
-                const id = String(consoleItem.id);
-                const extra = manifestConsolesMap.get(id) || {};
-                return {
-                    ...extra,
-                    ...consoleItem,
-                    driveImage:
-                        consoleImages.get(id) ||
-                        extra.image ||
-                        ""
-                };
-            }
-        );
-
-
-    console.log(
-        "Images Google Drive associées :",
-        {
-            jeux:
-                parsedData.ownedGames.filter(
-                    game => game.driveImage
-                ).length,
-
-            wishlist:
-                parsedData.wishlistGames.filter(
-                    game => game.driveImage
-                ).length,
-
-            consoles:
-                parsedData.consoles.filter(
-                    item => item.driveImage
-                ).length
-        }
-    );
+    applyEnrichedData(gameImages, wishlistImages, consoleImages, manifestItemsMap, manifestConsolesMap);
 }
 
 // DOM Elements
@@ -516,10 +621,6 @@ let currentTab = "games"; // "games" | "consoles" | "wishlist" | "profile"
 // 1. Listen for Authentication
 onAuthStateChanged(auth, async (user) => {
     if (!user) {
-        localStorage.removeItem("arcade_relics_logged_in");
-        localStorage.removeItem("arcade_relics_user_email");
-        localStorage.removeItem("arcade_relics_drive_token");
-        sessionStorage.removeItem("arcade_relics_drive_token");
         window.location.href = "index.html?login=true";
         return;
     }
@@ -536,6 +637,8 @@ onAuthStateChanged(auth, async (user) => {
         profileEmail.textContent = user.email || "Compte Google";
     }
 
+    const driveSyncBanner = document.getElementById("driveSyncBanner");
+
     try {
         const data =
             await loadCloudSnapshot(
@@ -544,23 +647,37 @@ onAuthStateChanged(auth, async (user) => {
 
         processCollectionData(data);
 
-        try {
-
-            await loadGoogleDriveImages();
-
-        } catch (driveError) {
-
-            console.warn(
-                "Photos Google Drive :",
-                driveError
-            );
-        }
-
+        // 1. Tenter d'abord de charger immédiatement les photos depuis le cache local IndexedDB
+        const hasCachedImages = await loadCachedDataFromDB();
         renderCurrentView();
 
         if (loading) loading.style.display = "none";
         if (errorMessage) errorMessage.style.display = "none";
         if (accountContent) accountContent.style.display = "block";
+
+        // 2. Synchroniser Google Drive si le jeton d'accès est présent
+        const accessToken =
+            sessionStorage.getItem("arcade_relics_drive_token") ||
+            localStorage.getItem("arcade_relics_drive_token");
+
+        if (accessToken) {
+            try {
+                await loadGoogleDriveImages();
+                renderCurrentView();
+                if (driveSyncBanner) driveSyncBanner.style.display = "none";
+            } catch (driveError) {
+                console.warn("Photos Google Drive :", driveError);
+                if (!hasCachedImages && driveSyncBanner) {
+                    driveSyncBanner.style.display = "flex";
+                }
+            }
+        } else {
+            // Aucun jeton en mémoire : si le cache n'a pas les images, proposer le bouton de synchronisation
+            if (!hasCachedImages && driveSyncBanner) {
+                driveSyncBanner.style.display = "flex";
+            }
+        }
+
     } catch (error) {
         console.error("Erreur chargement collection :", error);
         if (loading) loading.style.display = "none";
@@ -1495,6 +1612,7 @@ if (profileLogoutBtn) {
             localStorage.removeItem("arcade_relics_user_email");
             localStorage.removeItem("arcade_relics_drive_token");
             sessionStorage.removeItem("arcade_relics_drive_token");
+            await clearCacheDB();
             await signOut(auth);
             window.location.href = "index.html";
         } catch (e) {
@@ -1519,11 +1637,50 @@ if (logoutBtn) {
             localStorage.removeItem("arcade_relics_user_email");
             localStorage.removeItem("arcade_relics_drive_token");
             sessionStorage.removeItem("arcade_relics_drive_token");
+            await clearCacheDB();
             await signOut(auth);
             window.location.href = "index.html";
         } catch (e) {
             console.error("Erreur déconnexion :", e);
             window.location.href = "index.html";
+        }
+    });
+}
+
+// Drive Sync Button Handler (Charger / Synchroniser les photos Google Drive)
+const driveSyncBtn = document.getElementById("driveSyncBtn");
+if (driveSyncBtn) {
+    driveSyncBtn.addEventListener("click", async () => {
+        try {
+            driveSyncBtn.disabled = true;
+            driveSyncBtn.innerHTML = "<span>⏳ Connexion Google...</span>";
+
+            const provider = new GoogleAuthProvider();
+            provider.addScope("https://www.googleapis.com/auth/drive.appdata");
+
+            const result = await signInWithPopup(auth, provider);
+            const googleCredential = GoogleAuthProvider.credentialFromResult(result);
+            const driveAccessToken = googleCredential?.accessToken || "";
+
+            if (driveAccessToken) {
+                localStorage.setItem("arcade_relics_drive_token", driveAccessToken);
+                sessionStorage.setItem("arcade_relics_drive_token", driveAccessToken);
+                localStorage.setItem("arcade_relics_logged_in", "true");
+
+                driveSyncBtn.innerHTML = "<span>⏳ Téléchargement des photos...</span>";
+                await loadGoogleDriveImages();
+                renderCurrentView();
+
+                const banner = document.getElementById("driveSyncBanner");
+                if (banner) banner.style.display = "none";
+            } else {
+                driveSyncBtn.disabled = false;
+                driveSyncBtn.innerHTML = "<span>🔄 Charger mes photos</span>";
+            }
+        } catch (syncErr) {
+            console.error("Erreur autorisation Google Drive :", syncErr);
+            driveSyncBtn.disabled = false;
+            driveSyncBtn.innerHTML = "<span>🔄 Réessayer</span>";
         }
     });
 }
