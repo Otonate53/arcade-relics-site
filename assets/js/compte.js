@@ -153,19 +153,32 @@ async function clearCacheDB() {
         const store = tx.objectStore(STORE_NAME);
         store.clear();
         await new Promise((res) => { tx.oncomplete = res; });
-    } catch (err) {}
+    } catch (err) { }
 }
 
-function applyEnrichedData(gameImages, wishlistImages, consoleImages, manifestItemsMap, manifestConsolesMap) {
+function applyEnrichedData(
+    gameImages,
+    wishlistImages,
+    consoleImages,
+    spineImages,
+    manifestItemsMap,
+    manifestConsolesMap
+) {
     if (parsedData.ownedGames) {
         parsedData.ownedGames = parsedData.ownedGames.map(game => {
             const id = String(game.id);
             const extra = manifestItemsMap.get(id) || {};
             const img = gameImages.get(id) || wishlistImages.get(id) || extra.image || game.driveImage || "";
+            const spineImg =
+                spineImages.get(id) ||
+                game.driveSpineImage ||
+                "";
+
             return {
                 ...extra,
                 ...game,
-                driveImage: img
+                driveImage: img,
+                driveSpineImage: spineImg
             };
         });
     }
@@ -196,57 +209,325 @@ function applyEnrichedData(gameImages, wishlistImages, consoleImages, manifestIt
         });
     }
 }
-
 async function loadCachedDataFromDB() {
+
     try {
-        const items = await getAllFromCache();
-        if (!items || items.length === 0) return false;
 
-        const cachedGameImages = new Map();
-        const cachedWishlistImages = new Map();
-        const cachedConsoleImages = new Map();
-        let cachedManifestItemsMap = new Map();
-        let cachedManifestConsolesMap = new Map();
+        const items =
+            await getAllFromCache();
 
-        items.forEach(({ key, val }) => {
-            if (typeof key !== "string") return;
-            if (key.startsWith("game_")) {
-                const id = key.replace("game_", "");
-                const url = URL.createObjectURL(val);
-                driveImageObjectUrls.push(url);
-                cachedGameImages.set(id, url);
-            } else if (key.startsWith("wishlist_")) {
-                const id = key.replace("wishlist_", "");
-                const url = URL.createObjectURL(val);
-                driveImageObjectUrls.push(url);
-                cachedWishlistImages.set(id, url);
-            } else if (key.startsWith("console_")) {
-                const id = key.replace("console_", "");
-                const url = URL.createObjectURL(val);
-                driveImageObjectUrls.push(url);
-                cachedConsoleImages.set(id, url);
-            } else if (key === "__manifest_json__") {
-                try {
-                    const manifestJson = JSON.parse(val);
-                    const values = manifestJson.values || manifestJson;
-                    const bItems = parseBackupArray(values.otr_items || values.items);
-                    const bConsoles = parseBackupArray(values.otr_user_consoles || values.consoles);
-                    bItems.forEach(it => { if (it && it.id != null) cachedManifestItemsMap.set(String(it.id), it); });
-                    bConsoles.forEach(c => { if (c && c.id != null) cachedManifestConsolesMap.set(String(c.id), c); });
-                } catch (e) {}
+        if (
+            !items ||
+            items.length === 0
+        ) {
+            return false;
+        }
+
+
+        /*
+         * Images restaurées depuis
+         * le cache IndexedDB.
+         */
+        const cachedGameImages =
+            new Map();
+
+        const cachedWishlistImages =
+            new Map();
+
+        const cachedConsoleImages =
+            new Map();
+
+        const cachedSpineImages =
+            new Map();
+
+
+        /*
+         * Métadonnées du manifest.
+         */
+        const cachedManifestItemsMap =
+            new Map();
+
+        const cachedManifestConsolesMap =
+            new Map();
+
+
+        items.forEach(
+            ({ key, val }) => {
+
+                if (
+                    typeof key !== "string"
+                ) {
+                    return;
+                }
+
+
+                /*
+                 * JAQUETTES JEUX
+                 */
+                if (
+                    key.startsWith(
+                        "game_"
+                    )
+                ) {
+
+                    const id =
+                        key.replace(
+                            "game_",
+                            ""
+                        );
+
+                    const url =
+                        URL.createObjectURL(
+                            val
+                        );
+
+                    driveImageObjectUrls.push(
+                        url
+                    );
+
+                    cachedGameImages.set(
+                        id,
+                        url
+                    );
+
+                    return;
+                }
+
+
+                /*
+                 * JAQUETTES WISHLIST
+                 */
+                if (
+                    key.startsWith(
+                        "wishlist_"
+                    )
+                ) {
+
+                    const id =
+                        key.replace(
+                            "wishlist_",
+                            ""
+                        );
+
+                    const url =
+                        URL.createObjectURL(
+                            val
+                        );
+
+                    driveImageObjectUrls.push(
+                        url
+                    );
+
+                    cachedWishlistImages.set(
+                        id,
+                        url
+                    );
+
+                    return;
+                }
+
+
+                /*
+                 * IMAGES CONSOLES
+                 */
+                if (
+                    key.startsWith(
+                        "console_"
+                    )
+                ) {
+
+                    const id =
+                        key.replace(
+                            "console_",
+                            ""
+                        );
+
+                    const url =
+                        URL.createObjectURL(
+                            val
+                        );
+
+                    driveImageObjectUrls.push(
+                        url
+                    );
+
+                    cachedConsoleImages.set(
+                        id,
+                        url
+                    );
+
+                    return;
+                }
+
+
+                /*
+                 * PHOTOS DES TRANCHES
+                 */
+                if (
+                    key.startsWith(
+                        "spine_"
+                    )
+                ) {
+
+                    const id =
+                        key.replace(
+                            "spine_",
+                            ""
+                        );
+
+                    const url =
+                        URL.createObjectURL(
+                            val
+                        );
+
+                    driveImageObjectUrls.push(
+                        url
+                    );
+
+                    cachedSpineImages.set(
+                        id,
+                        url
+                    );
+
+                    return;
+                }
+
+
+                /*
+                 * MANIFEST DU BACKUP
+                 */
+                if (
+                    key ===
+                    "__manifest_json__"
+                ) {
+
+                    try {
+
+                        const manifestJson =
+                            JSON.parse(
+                                val
+                            );
+
+                        const values =
+                            manifestJson.values ||
+                            manifestJson;
+
+
+                        const backupItems =
+                            parseBackupArray(
+                                values.otr_items ||
+                                values.items
+                            );
+
+
+                        const backupConsoles =
+                            parseBackupArray(
+                                values.otr_user_consoles ||
+                                values.consoles
+                            );
+
+
+                        backupItems.forEach(
+                            item => {
+
+                                if (
+                                    item &&
+                                    item.id != null
+                                ) {
+
+                                    cachedManifestItemsMap.set(
+                                        String(
+                                            item.id
+                                        ),
+                                        item
+                                    );
+                                }
+                            }
+                        );
+
+
+                        backupConsoles.forEach(
+                            consoleItem => {
+
+                                if (
+                                    consoleItem &&
+                                    consoleItem.id != null
+                                ) {
+
+                                    cachedManifestConsolesMap.set(
+                                        String(
+                                            consoleItem.id
+                                        ),
+                                        consoleItem
+                                    );
+                                }
+                            }
+                        );
+
+                    } catch (
+                    manifestError
+                    ) {
+
+                        console.warn(
+                            "Erreur cache manifest :",
+                            manifestError
+                        );
+                    }
+                }
+
             }
-        });
+        );
 
-        const totalImages = cachedGameImages.size + cachedWishlistImages.size + cachedConsoleImages.size;
-        console.log("Photos restaurées depuis le cache local IndexedDB :", totalImages);
 
-        if (totalImages > 0) {
-            applyEnrichedData(cachedGameImages, cachedWishlistImages, cachedConsoleImages, cachedManifestItemsMap, cachedManifestConsolesMap);
+        const totalImages =
+            cachedGameImages.size +
+            cachedWishlistImages.size +
+            cachedConsoleImages.size +
+            cachedSpineImages.size;
+
+
+        console.log(
+            "Photos restaurées depuis le cache local IndexedDB :",
+            {
+                total: totalImages,
+                jeux:
+                    cachedGameImages.size,
+                wishlist:
+                    cachedWishlistImages.size,
+                consoles:
+                    cachedConsoleImages.size,
+                tranches:
+                    cachedSpineImages.size
+            }
+        );
+
+
+        if (
+            totalImages > 0
+        ) {
+
+            applyEnrichedData(
+                cachedGameImages,
+                cachedWishlistImages,
+                cachedConsoleImages,
+                cachedSpineImages,
+                cachedManifestItemsMap,
+                cachedManifestConsolesMap
+            );
+
             return true;
         }
+
+
         return false;
-    } catch (err) {
-        console.warn("Erreur lecture cache local :", err);
+
+    } catch (error) {
+
+        console.warn(
+            "Erreur lecture cache local :",
+            error
+        );
+
         return false;
     }
 }
@@ -435,6 +716,8 @@ async function loadGoogleDriveImages() {
     const consoleImages =
         new Map();
 
+    const spineImages =
+        new Map();
 
     /*
      * Parcours directement TOUS les fichiers
@@ -560,6 +843,88 @@ async function loadGoogleDriveImages() {
             wishlist: wishlistImages.size,
             consoles: consoleImages.size
         }
+    );
+
+    /*
+ * Photos de tranche des jeux.
+ *
+ * Dans l'application :
+ * images[0] = face avant
+ * images[1] = tranche
+ * images[2] = face arrière
+ */
+    for (
+        const [id, item]
+        of manifestItemsMap.entries()
+    ) {
+
+        const images =
+            Array.isArray(item.images)
+                ? item.images
+                : [];
+
+        const possibleRefs = [
+            item.spineImage || "",
+            images.length >= 2
+                ? images[1]
+                : ""
+        ];
+
+        let spineFile = null;
+
+        for (const ref of possibleRefs) {
+
+            if (
+                !ref ||
+                typeof ref !== "string"
+            ) {
+                continue;
+            }
+
+            const path =
+                ref.replace(/^\/+/, "");
+
+            const candidate =
+                zip.file(path);
+
+            if (candidate) {
+                spineFile = candidate;
+                break;
+            }
+        }
+
+        if (!spineFile) {
+            continue;
+        }
+
+        const blob =
+            await spineFile.async(
+                "blob"
+            );
+
+        entriesToCache.push({
+            key: `spine_${id}`,
+            val: blob
+        });
+
+        const url =
+            URL.createObjectURL(
+                blob
+            );
+
+        driveImageObjectUrls.push(
+            url
+        );
+
+        spineImages.set(
+            String(id),
+            url
+        );
+    }
+
+    console.log(
+        "Tranches trouvées :",
+        spineImages.size
     );
 
     /*
@@ -1001,6 +1366,10 @@ function openGameDetails(game, isWishlist = false) {
 
     const cover =
         getGameCoverUrl(game);
+
+    const spinePhotoUrl =
+        game.driveSpineImage ||
+        "";
 
     const meta =
         game.meta || {};
@@ -1661,17 +2030,42 @@ function createGameSpineElement(game, platformName) {
         : `<div class="spine-preview-fallback"><span>🎮</span></div>`;
 
     spine.innerHTML = `
+       ${spinePhotoUrl
+            ? `
+        <img
+            src="${escapeHtml(spinePhotoUrl)}"
+            alt="Tranche de ${escapeHtml(title)}"
+            class="spine-real-photo"
+            loading="lazy"
+        >
+      `
+            : `
         <div class="spine-top">
-            <span class="spine-logo-tag" title="${escapeHtml(platformName)}">${escapeHtml(shortTag)}</span>
+            <span
+                class="spine-logo-tag"
+                title="${escapeHtml(platformName)}"
+            >
+                ${escapeHtml(shortTag)}
+            </span>
         </div>
 
         <div class="spine-title-wrap">
-            <span class="spine-title" title="${escapeHtml(title)}">${escapeHtml(title)}</span>
+            <span
+                class="spine-title"
+                title="${escapeHtml(title)}"
+            >
+                ${escapeHtml(title)}
+            </span>
         </div>
 
         <div class="spine-bottom">
-            <span class="spine-status-indicator" style="color: ${statusColor};" title="${isWishlist ? 'Wishlist' : 'Possédé'}"></span>
+            <span
+                class="spine-status-indicator"
+                style="color:${statusColor};"
+            ></span>
         </div>
+      `
+        }
 
         <!-- Floating Preview Tooltip Card -->
         <div class="spine-preview-card" aria-hidden="true">
