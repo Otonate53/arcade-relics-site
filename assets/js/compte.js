@@ -188,10 +188,15 @@ function applyEnrichedData(
             const id = String(game.id);
             const extra = manifestItemsMap.get(id) || {};
             const img = wishlistImages.get(id) || gameImages.get(id) || extra.image || game.driveImage || "";
+            const spineImg =
+                (spineImages && spineImages.get(id)) ||
+                game.driveSpineImage ||
+                "";
             return {
                 ...extra,
                 ...game,
-                driveImage: img
+                driveImage: img,
+                driveSpineImage: spineImg
             };
         });
     }
@@ -934,7 +939,7 @@ async function loadGoogleDriveImages() {
         saveToCache(entriesToCache);
     }
 
-    applyEnrichedData(gameImages, wishlistImages, consoleImages, manifestItemsMap, manifestConsolesMap);
+    applyEnrichedData(gameImages, wishlistImages, consoleImages, spineImages, manifestItemsMap, manifestConsolesMap);
 }
 
 // DOM Elements
@@ -2019,6 +2024,7 @@ function createGameSpineElement(game, platformName) {
 
     const title = game.title || game.name || "Jeu sans titre";
     const coverUrl = getGameCoverUrl(game);
+    const spinePhotoUrl = game.driveSpineImage || "";
     const isWishlist = currentTab === "wishlist";
     const statusColor = isWishlist ? "var(--yellow)" : "var(--green)";
 
