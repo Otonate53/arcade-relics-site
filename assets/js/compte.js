@@ -84,7 +84,6 @@ async function getZipImageUrl(
 
     return objectUrl;
 }
-
 async function loadGoogleDriveImages() {
 
     const accessToken =
@@ -101,9 +100,9 @@ async function loadGoogleDriveImages() {
         return;
     }
 
+
     /*
-     * Cherche le dernier backup
-     * Arcade Relics dans appDataFolder.
+     * Recherche du backup Arcade Relics.
      */
     const searchUrl =
         new URL(
@@ -151,7 +150,7 @@ async function loadGoogleDriveImages() {
     if (!searchResponse.ok) {
 
         throw new Error(
-            "Impossible d'accéder à la sauvegarde Google Drive."
+            "Impossible d'accéder à Google Drive."
         );
     }
 
@@ -162,10 +161,11 @@ async function loadGoogleDriveImages() {
     const backupFile =
         searchData.files?.[0];
 
+
     if (!backupFile) {
 
         console.warn(
-            "Aucun backup Google Drive Arcade Relics."
+            "Aucun backup Arcade Relics trouvé."
         );
 
         return;
@@ -179,8 +179,7 @@ async function loadGoogleDriveImages() {
 
 
     /*
-     * Télécharge le ZIP uniquement
-     * en mémoire.
+     * Récupération du ZIP en mémoire.
      */
     const downloadResponse =
         await fetch(
@@ -197,7 +196,7 @@ async function loadGoogleDriveImages() {
     if (!downloadResponse.ok) {
 
         throw new Error(
-            "Impossible de lire le backup Arcade Relics."
+            "Impossible de lire le backup."
         );
     }
 
@@ -211,114 +210,150 @@ async function loadGoogleDriveImages() {
         );
 
 
-    const manifestFile =
-        zip.file(
-            "manifest.json"
-        );
-
-    if (!manifestFile) {
-
-        throw new Error(
-            "manifest.json absent du backup."
-        );
-    }
-
-
-    const manifest =
-        JSON.parse(
-            await manifestFile.async(
-                "string"
-            )
-        );
-
-
-    const values =
-        manifest.values || {};
-
-
-    const backupItems =
-        parseBackupArray(
-            values.otr_items
-        );
-
-    const backupConsoles =
-        parseBackupArray(
-            values.otr_user_consoles
-        );
-
-
     /*
-     * Images jeux + wishlist.
+     * Nettoyage des anciennes URL temporaires.
      */
+    driveImageObjectUrls.forEach(
+        url => URL.revokeObjectURL(url)
+    );
+
+    driveImageObjectUrls.length = 0;
+
+
     const gameImages =
         new Map();
 
-    for (
-        const item of backupItems
-    ) {
+    const wishlistImages =
+        new Map();
 
-        const imageRef =
-            item.image ||
-            item.images?.[0] ||
-            item.cover ||
-            "";
-
-        const imageUrl =
-            await getZipImageUrl(
-                zip,
-                imageRef
-            );
-
-        if (imageUrl) {
-
-            gameImages.set(
-                String(item.id),
-                imageUrl
-            );
-        }
-    }
-
-
-    /*
-     * Images consoles.
-     */
     const consoleImages =
         new Map();
 
+
+    /*
+     * Parcours directement TOUS les fichiers
+     * présents dans le ZIP.
+     */
     for (
-        const consoleItem
-        of backupConsoles
+        const [
+            path,
+            file
+        ] of Object.entries(zip.files)
     ) {
 
-        const imageRef =
-            consoleItem.image ||
-            consoleItem.cover ||
-            consoleItem.photo ||
-            consoleItem.img ||
-            consoleItem.imageRef ||
-            "";
+        if (file.dir) {
+            continue;
+        }
 
-        const imageUrl =
-            await getZipImageUrl(
-                zip,
-                imageRef
+
+        /*
+         * Jeux possédés
+         *
+         * images/games/ID_cover.webp
+         */
+        let match =
+            path.match(
+                /^images\/games\/(.+)_cover\.(webp|png|jpe?g|gif)$/i
             );
 
-        if (imageUrl) {
+        if (match) {
+
+            const id =
+                String(match[1]);
+
+            const blob =
+                await file.async("blob");
+
+            const url =
+                URL.createObjectURL(blob);
+
+            driveImageObjectUrls.push(url);
+
+            gameImages.set(
+                id,
+                url
+            );
+
+            continue;
+        }
+
+
+        /*
+         * Wishlist
+         *
+         * images/wishlist/ID_cover.webp
+         */
+        match =
+            path.match(
+                /^images\/wishlist\/(.+)_cover\.(webp|png|jpe?g|gif)$/i
+            );
+
+        if (match) {
+
+            const id =
+                String(match[1]);
+
+            const blob =
+                await file.async("blob");
+
+            const url =
+                URL.createObjectURL(blob);
+
+            driveImageObjectUrls.push(url);
+
+            wishlistImages.set(
+                id,
+                url
+            );
+
+            continue;
+        }
+
+
+        /*
+         * Consoles
+         *
+         * images/consoles/ID_cover.webp
+         */
+        match =
+            path.match(
+                /^images\/consoles\/(.+)_cover\.(webp|png|jpe?g|gif)$/i
+            );
+
+        if (match) {
+
+            const id =
+                String(match[1]);
+
+            const blob =
+                await file.async("blob");
+
+            const url =
+                URL.createObjectURL(blob);
+
+            driveImageObjectUrls.push(url);
 
             consoleImages.set(
-                String(consoleItem.id),
-                imageUrl
+                id,
+                url
             );
         }
     }
 
 
-    /*
-     * Fusion avec les données
-     * Firestore actuelles.
-     */
+    console.log(
+        "Photos trouvées dans le ZIP :",
+        {
+            jeux: gameImages.size,
+            wishlist: wishlistImages.size,
+            consoles: consoleImages.size
+        }
+    );
 
+
+    /*
+     * Association avec les jeux Firestore.
+     */
     parsedData.ownedGames =
         parsedData.ownedGames.map(
             game => ({
@@ -327,24 +362,42 @@ async function loadGoogleDriveImages() {
                 driveImage:
                     gameImages.get(
                         String(game.id)
-                    ) || ""
+                    ) ||
+
+                    wishlistImages.get(
+                        String(game.id)
+                    ) ||
+
+                    ""
             })
         );
 
 
+    /*
+     * Association avec la wishlist.
+     */
     parsedData.wishlistGames =
         parsedData.wishlistGames.map(
             game => ({
                 ...game,
 
                 driveImage:
+                    wishlistImages.get(
+                        String(game.id)
+                    ) ||
+
                     gameImages.get(
                         String(game.id)
-                    ) || ""
+                    ) ||
+
+                    ""
             })
         );
 
 
+    /*
+     * Association avec les consoles.
+     */
     parsedData.consoles =
         parsedData.consoles.map(
             consoleItem => ({
@@ -352,16 +405,32 @@ async function loadGoogleDriveImages() {
 
                 driveImage:
                     consoleImages.get(
-                        String(
-                            consoleItem.id
-                        )
-                    ) || ""
+                        String(consoleItem.id)
+                    ) ||
+
+                    ""
             })
         );
 
 
     console.log(
-        "Images Google Drive chargées."
+        "Images Google Drive associées :",
+        {
+            jeux:
+                parsedData.ownedGames.filter(
+                    game => game.driveImage
+                ).length,
+
+            wishlist:
+                parsedData.wishlistGames.filter(
+                    game => game.driveImage
+                ).length,
+
+            consoles:
+                parsedData.consoles.filter(
+                    item => item.driveImage
+                ).length
+        }
     );
 }
 
