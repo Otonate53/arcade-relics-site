@@ -15,6 +15,355 @@ import {
 } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
 
 const db = getFirestore(app);
+const driveImageObjectUrls = [];
+
+function parseBackupArray(value) {
+
+    if (Array.isArray(value)) {
+        return value;
+    }
+
+    if (typeof value === "string") {
+
+        try {
+            const parsed =
+                JSON.parse(value);
+
+            return Array.isArray(parsed)
+                ? parsed
+                : [];
+        } catch {
+            return [];
+        }
+    }
+
+    return [];
+}
+
+
+async function getZipImageUrl(
+    zip,
+    imageRef
+) {
+
+    if (
+        !imageRef ||
+        typeof imageRef !== "string"
+    ) {
+        return "";
+    }
+
+
+    if (
+        imageRef.startsWith("https://") ||
+        imageRef.startsWith("http://")
+    ) {
+        return imageRef;
+    }
+
+    const path =
+        imageRef
+            .replace(/^\/+/, "");
+
+    const file =
+        zip.file(path);
+
+    if (!file) {
+        return "";
+    }
+
+    const blob =
+        await file.async("blob");
+
+    const objectUrl =
+        URL.createObjectURL(blob);
+
+    driveImageObjectUrls.push(
+        objectUrl
+    );
+
+    return objectUrl;
+}
+
+async function loadGoogleDriveImages() {
+
+    const accessToken =
+        sessionStorage.getItem(
+            "arcade_relics_drive_token"
+        );
+
+    if (!accessToken) {
+
+        console.warn(
+            "Aucun accès Google Drive disponible."
+        );
+
+        return;
+    }
+
+    /*
+     * Cherche le dernier backup
+     * Arcade Relics dans appDataFolder.
+     */
+    const searchUrl =
+        new URL(
+            "https://www.googleapis.com/drive/v3/files"
+        );
+
+    searchUrl.searchParams.set(
+        "spaces",
+        "appDataFolder"
+    );
+
+    searchUrl.searchParams.set(
+        "q",
+        "name='arcade_relics_backup.zip' and trashed=false"
+    );
+
+    searchUrl.searchParams.set(
+        "orderBy",
+        "modifiedTime desc"
+    );
+
+    searchUrl.searchParams.set(
+        "pageSize",
+        "1"
+    );
+
+    searchUrl.searchParams.set(
+        "fields",
+        "files(id,name,modifiedTime)"
+    );
+
+
+    const searchResponse =
+        await fetch(
+            searchUrl.toString(),
+            {
+                headers: {
+                    Authorization:
+                        `Bearer ${accessToken}`
+                }
+            }
+        );
+
+
+    if (!searchResponse.ok) {
+
+        throw new Error(
+            "Impossible d'accéder à la sauvegarde Google Drive."
+        );
+    }
+
+
+    const searchData =
+        await searchResponse.json();
+
+    const backupFile =
+        searchData.files?.[0];
+
+    if (!backupFile) {
+
+        console.warn(
+            "Aucun backup Google Drive Arcade Relics."
+        );
+
+        return;
+    }
+
+
+    console.log(
+        "Backup Drive trouvé :",
+        backupFile.modifiedTime
+    );
+
+
+    /*
+     * Télécharge le ZIP uniquement
+     * en mémoire.
+     */
+    const downloadResponse =
+        await fetch(
+            `https://www.googleapis.com/drive/v3/files/${backupFile.id}?alt=media`,
+            {
+                headers: {
+                    Authorization:
+                        `Bearer ${accessToken}`
+                }
+            }
+        );
+
+
+    if (!downloadResponse.ok) {
+
+        throw new Error(
+            "Impossible de lire le backup Arcade Relics."
+        );
+    }
+
+
+    const zipBuffer =
+        await downloadResponse.arrayBuffer();
+
+    const zip =
+        await JSZip.loadAsync(
+            zipBuffer
+        );
+
+
+    const manifestFile =
+        zip.file(
+            "manifest.json"
+        );
+
+    if (!manifestFile) {
+
+        throw new Error(
+            "manifest.json absent du backup."
+        );
+    }
+
+
+    const manifest =
+        JSON.parse(
+            await manifestFile.async(
+                "string"
+            )
+        );
+
+
+    const values =
+        manifest.values || {};
+
+
+    const backupItems =
+        parseBackupArray(
+            values.otr_items
+        );
+
+    const backupConsoles =
+        parseBackupArray(
+            values.otr_user_consoles
+        );
+
+
+    /*
+     * Images jeux + wishlist.
+     */
+    const gameImages =
+        new Map();
+
+    for (
+        const item of backupItems
+    ) {
+
+        const imageRef =
+            item.image ||
+            item.images?.[0] ||
+            item.cover ||
+            "";
+
+        const imageUrl =
+            await getZipImageUrl(
+                zip,
+                imageRef
+            );
+
+        if (imageUrl) {
+
+            gameImages.set(
+                String(item.id),
+                imageUrl
+            );
+        }
+    }
+
+
+    /*
+     * Images consoles.
+     */
+    const consoleImages =
+        new Map();
+
+    for (
+        const consoleItem
+        of backupConsoles
+    ) {
+
+        const imageRef =
+            consoleItem.image ||
+            consoleItem.cover ||
+            consoleItem.photo ||
+            consoleItem.img ||
+            consoleItem.imageRef ||
+            "";
+
+        const imageUrl =
+            await getZipImageUrl(
+                zip,
+                imageRef
+            );
+
+        if (imageUrl) {
+
+            consoleImages.set(
+                String(consoleItem.id),
+                imageUrl
+            );
+        }
+    }
+
+
+    /*
+     * Fusion avec les données
+     * Firestore actuelles.
+     */
+
+    parsedData.ownedGames =
+        parsedData.ownedGames.map(
+            game => ({
+                ...game,
+
+                driveImage:
+                    gameImages.get(
+                        String(game.id)
+                    ) || ""
+            })
+        );
+
+
+    parsedData.wishlistGames =
+        parsedData.wishlistGames.map(
+            game => ({
+                ...game,
+
+                driveImage:
+                    gameImages.get(
+                        String(game.id)
+                    ) || ""
+            })
+        );
+
+
+    parsedData.consoles =
+        parsedData.consoles.map(
+            consoleItem => ({
+                ...consoleItem,
+
+                driveImage:
+                    consoleImages.get(
+                        String(
+                            consoleItem.id
+                        )
+                    ) || ""
+            })
+        );
+
+
+    console.log(
+        "Images Google Drive chargées."
+    );
+}
 
 // DOM Elements
 const loading = document.getElementById("loading");
@@ -57,8 +406,25 @@ onAuthStateChanged(auth, async (user) => {
     }
 
     try {
-        const data = await loadCloudSnapshot(user.uid);
+        const data =
+            await loadCloudSnapshot(
+                user.uid
+            );
+
         processCollectionData(data);
+
+        try {
+
+            await loadGoogleDriveImages();
+
+        } catch (driveError) {
+
+            console.warn(
+                "Photos Google Drive :",
+                driveError
+            );
+        }
+
         renderCurrentView();
 
         if (loading) loading.style.display = "none";
@@ -305,10 +671,14 @@ function getPlatformDisplayName(game) {
     return rawConsole;
 }
 
-// Helper to get game cover URL
 function getGameCoverUrl(game) {
-    if (!game) return "";
+
+    if (!game) {
+        return "";
+    }
+
     return (
+        game.driveImage ||
         game.coverUrl ||
         game.cover ||
         game.image ||
@@ -364,8 +734,32 @@ function renderCurrentView() {
             const name = consoleItem.name || consoleItem.title || consoleItem.consoleName || consoleItem.nom || "Console";
             const brand = consoleItem.brand || consoleItem.manufacturer || consoleItem.company || "Retro / Moderne";
 
+            const consoleImage =
+                consoleItem.driveImage ||
+                consoleItem.image ||
+                consoleItem.cover ||
+                "";
+
             card.innerHTML = `
-                <div class="console-icon-wrap">🕹️</div>
+              <div class="console-icon-wrap">
+
+    ${consoleImage
+                    ? `
+                <img
+                    src="${escapeHtml(consoleImage)}"
+                    alt="${escapeHtml(name)}"
+                    style="
+                        width:100%;
+                        height:100%;
+                        object-fit:cover;
+                        border-radius:inherit;
+                    "
+                >
+              `
+                    : "🕹️"
+                }
+
+</div>
                 <div class="console-info">
                     <h3>${escapeHtml(name)}</h3>
                     <span class="console-brand">${escapeHtml(brand)}</span>

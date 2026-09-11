@@ -6,12 +6,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>Mon compte — Arcade Relics</title>
-    <meta name="description" content="Espace personnel Arcade Relics : Consultez votre collection de jeux rétro, consoles et wishlist synchronisés en direct avec votre application.">
+    <meta name="description"
+        content="Espace personnel Arcade Relics : Consultez votre collection de jeux rétro, consoles et wishlist synchronisés en direct avec votre application.">
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap"
+        rel="stylesheet">
 
     <!-- Favicons -->
     <link rel="icon" href="assets/img/favicon.ico?v=1" sizes="any">
@@ -47,7 +50,8 @@
                     <span id="userEmail">Chargement...</span>
                 </div>
 
-                <button type="button" class="button button-secondary btn-signout" id="logoutBtn" aria-label="Se déconnecter">
+                <button type="button" class="button button-secondary btn-signout" id="logoutBtn"
+                    aria-label="Se déconnecter">
                     <span>Déconnexion</span>
                 </button>
             </div>
@@ -61,7 +65,8 @@
             <div id="loading" class="state-container">
                 <div class="collection-spinner"></div>
                 <h2 style="font-size: 1.3rem; color: #ffffff; margin-top: 10px;">Chargement de votre collection...</h2>
-                <p style="color: var(--text-muted); font-size: 0.9rem;">Récupération et décompression de vos données Cloud Arcade Relics</p>
+                <p style="color: var(--text-muted); font-size: 0.9rem;">Récupération et décompression de vos données
+                    Cloud Arcade Relics</p>
             </div>
 
             <!-- Error State -->
@@ -71,7 +76,8 @@
                 <p class="empty-text" id="errorDetail">Aucune sauvegarde cloud trouvée pour ce compte.</p>
                 <div style="margin-top: 16px; display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;">
                     <a href="index.html" class="button button-secondary">Retour à l'accueil</a>
-                    <button type="button" class="button button-primary" onclick="window.location.reload();">Réessayer</button>
+                    <button type="button" class="button button-primary"
+                        onclick="window.location.reload();">Réessayer</button>
                 </div>
             </div>
 
@@ -83,8 +89,9 @@
                         <div class="collection-title-wrap">
                             <h1>Ma Collection <span class="gradient-text">Arcade Relics</span></h1>
                             <div class="cloud-sync-status">
-                                <svg class="icon" viewBox="0 0 24 24" style="stroke: var(--cyan); width: 18px; height: 18px;">
-                                    <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/>
+                                <svg class="icon" viewBox="0 0 24 24"
+                                    style="stroke: var(--cyan); width: 18px; height: 18px;">
+                                    <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z" />
                                 </svg>
                                 <span>Synchronisée en direct avec votre application mobile</span>
                             </div>
@@ -138,16 +145,12 @@
 
                     <div class="search-box-wrap">
                         <svg class="icon search-icon" viewBox="0 0 24 24" aria-hidden="true">
-                            <circle cx="11" cy="11" r="8"/>
-                            <path d="m21 21-4.3-4.3"/>
+                            <circle cx="11" cy="11" r="8" />
+                            <path d="m21 21-4.3-4.3" />
                         </svg>
-                        <input 
-                            type="search" 
-                            id="collectionSearch" 
-                            class="collection-search-input" 
-                            placeholder="Rechercher un jeu, une console..." 
-                            aria-label="Rechercher dans votre collection"
-                        >
+                        <input type="search" id="collectionSearch" class="collection-search-input"
+                            placeholder="Rechercher un jeu, une console..."
+                            aria-label="Rechercher dans votre collection">
                     </div>
                 </div>
 
@@ -167,7 +170,10 @@
     </main>
 
     <!-- Module Script -->
-    <script type="module" src="assets/js/compte.js?v=20260911_2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js">
+    </script>
+    <script type="module" src="assets/js/compte.js?v=20260911_drive1">
+    </script>
 </body>
 
 </html>

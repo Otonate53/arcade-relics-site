@@ -34,6 +34,10 @@ const auth =
 const provider =
     new GoogleAuthProvider();
 
+provider.addScope(
+    "https://www.googleapis.com/auth/drive.appdata"
+);
+
 const googleLoginBtn =
     document.getElementById(
         "googleLoginBtn"
@@ -55,6 +59,23 @@ if (googleLoginBtn) {
 
                 const user =
                     result.user;
+
+                const googleCredential =
+                    GoogleAuthProvider
+                        .credentialFromResult(
+                            result
+                        );
+
+                const driveAccessToken =
+                    googleCredential?.accessToken || "";
+
+                if (driveAccessToken) {
+
+                    sessionStorage.setItem(
+                        "arcade_relics_drive_token",
+                        driveAccessToken
+                    );
+                }
 
                 console.log(
                     "Utilisateur connecté :",
