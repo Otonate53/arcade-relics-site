@@ -492,11 +492,12 @@ const itemModalCloseBtn = document.getElementById("itemModalCloseBtn");
 const itemModalContent = document.getElementById("itemModalContent");
 const modalAmbientAura = document.getElementById("modalAmbientAura");
 
-// State storage
 let parsedData = {
     ownedGames: [],
     consoles: [],
-    wishlistGames: []
+    wishlistGames: [],
+    finishedIds: new Set(),
+    backlogIds: new Set()
 };
 let currentTab = "games"; // "games" | "consoles" | "wishlist"
 
@@ -639,6 +640,26 @@ function processCollectionData(data) {
         Array.isArray(data.consoles)
             ? data.consoles
             : [];
+
+    const finished =
+        Array.isArray(data.finished)
+            ? data.finished
+            : [];
+
+    const backlog =
+        Array.isArray(data.backlog)
+            ? data.backlog
+            : [];
+
+    parsedData.finishedIds =
+        new Set(
+            finished.map(id => String(id))
+        );
+
+    parsedData.backlogIds =
+        new Set(
+            backlog.map(id => String(id))
+        );
 
     console.log(
         "Items :",
@@ -797,6 +818,465 @@ function getGameCoverUrl(game) {
     );
 }
 
+function openGameDetails(game, isWishlist = false) {
+
+    if (!game) {
+        return;
+    }
+
+    const existingModal =
+        document.getElementById(
+            "gameDetailModal"
+        );
+
+    if (existingModal) {
+        existingModal.remove();
+    }
+
+
+    const title =
+        game.title ||
+        game.name ||
+        "Jeu sans titre";
+
+    const platform =
+        getPlatformDisplayName(game);
+
+    const cover =
+        getGameCoverUrl(game);
+
+    const meta =
+        game.meta || {};
+
+
+    const conditionLabels = {
+        neuf: "Neuf",
+        tbe: "Très bon état",
+        bon: "Bon état",
+        correct: "État correct",
+        abime: "Abîmé",
+        casse: "Cassé",
+        nonfunc: "Non fonctionnel"
+    };
+
+
+    const languageLabels = {
+        fr: "Français",
+        en: "Anglais",
+        jp: "Japonais",
+        de: "Allemand",
+        es: "Espagnol",
+        it: "Italien",
+        multi: "Multilingue"
+    };
+
+
+    const priorityLabels = {
+        high: "Haute",
+        medium: "Moyenne",
+        low: "Basse"
+    };
+
+
+    const condition =
+        conditionLabels[
+        meta.condition
+        ] ||
+        meta.condition ||
+        "Non renseigné";
+
+
+    const language =
+        languageLabels[
+        meta.lang
+        ] ||
+        meta.lang ||
+        "Non renseignée";
+
+
+    const priority =
+        priorityLabels[
+        meta.priority
+        ] ||
+        meta.priority ||
+        "Moyenne";
+
+
+    const edition =
+        meta.edition ||
+        game.edition ||
+        "Standard";
+
+
+    const serial =
+        meta.serial ||
+        game.serial ||
+        "—";
+
+
+    const notes =
+        meta.notes ||
+        game.notes ||
+        "";
+
+
+    const complete =
+        meta.complete === true ||
+        meta.complete === "oui" ||
+        meta.complete === "yes";
+
+
+    const finished =
+        parsedData.finishedIds.has(
+            String(game.id)
+        );
+
+
+    const backlog =
+        parsedData.backlogIds.has(
+            String(game.id)
+        );
+
+
+    let status = "À jouer";
+
+    if (isWishlist) {
+        status = "Wishlist";
+    } else if (finished) {
+        status = "Terminé";
+    } else if (backlog) {
+        status = "Pile à terminer";
+    }
+
+
+    let addedDate = "—";
+
+    if (game.addedAt) {
+
+        try {
+
+            addedDate =
+                new Date(
+                    game.addedAt
+                ).toLocaleDateString(
+                    "fr-FR"
+                );
+
+        } catch { }
+    }
+
+
+    const modal =
+        document.createElement(
+            "div"
+        );
+
+    modal.id =
+        "gameDetailModal";
+
+    modal.className =
+        "item-modal-overlay";
+
+
+    modal.innerHTML = `
+
+        <div class="item-modal-wrapper">
+
+            <div class="modal-ambient-aura ${isWishlist
+            ? "aura-yellow"
+            : ""
+        }"></div>
+
+
+            <div class="item-modal-card">
+
+                <button
+                    type="button"
+                    class="item-modal-close-btn"
+                    id="closeGameModal"
+                    aria-label="Fermer"
+                >
+                    ×
+                </button>
+
+
+                <div class="modal-hero">
+
+                    <div class="modal-cover-wrap">
+
+                        ${cover
+            ? `
+                                    <img
+                                        src="${escapeHtml(cover)}"
+                                        alt="${escapeHtml(title)}"
+                                        class="modal-cover-img"
+                                    >
+                                  `
+            : `
+                                    <div class="modal-cover-fallback">
+                                        🎮
+                                    </div>
+                                  `
+        }
+
+                    </div>
+
+
+                    <div class="modal-header-info">
+
+                        <h2 class="modal-title">
+                            ${escapeHtml(title)}
+                        </h2>
+
+
+                        <div class="modal-badge-row">
+
+                            <span class="modal-badge modal-badge-cyan">
+                                ${escapeHtml(platform)}
+                            </span>
+
+                            <span class="modal-badge ${isWishlist
+            ? "modal-badge-yellow"
+            : finished
+                ? "modal-badge-green"
+                : "modal-badge-purple"
+        }">
+                                ${escapeHtml(status)}
+                            </span>
+
+                            ${game.year
+            ? `
+                                        <span class="modal-badge modal-badge-neutral">
+                                            ${escapeHtml(game.year)}
+                                        </span>
+                                      `
+            : ""
+        }
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="modal-section-title">
+                    Informations
+                </div>
+
+
+                <div class="modal-grid">
+
+                    <div class="modal-stat-box">
+                        <span class="modal-stat-label">
+                            Console
+                        </span>
+                        <span class="modal-stat-val">
+                            ${escapeHtml(platform)}
+                        </span>
+                    </div>
+
+
+                    ${isWishlist
+            ? `
+                                <div class="modal-stat-box">
+                                    <span class="modal-stat-label">
+                                        Priorité
+                                    </span>
+                                    <span class="modal-stat-val">
+                                        ${escapeHtml(priority)}
+                                    </span>
+                                </div>
+                              `
+            : `
+                                <div class="modal-stat-box">
+                                    <span class="modal-stat-label">
+                                        Langue
+                                    </span>
+                                    <span class="modal-stat-val">
+                                        ${escapeHtml(language)}
+                                    </span>
+                                </div>
+                              `
+        }
+
+
+                    <div class="modal-stat-box">
+                        <span class="modal-stat-label">
+                            Statut
+                        </span>
+                        <span class="modal-stat-val">
+                            ${escapeHtml(status)}
+                        </span>
+                    </div>
+
+
+                    <div class="modal-stat-box">
+                        <span class="modal-stat-label">
+                            Ajouté le
+                        </span>
+                        <span class="modal-stat-val">
+                            ${escapeHtml(addedDate)}
+                        </span>
+                    </div>
+
+                </div>
+
+
+                ${!isWishlist
+            ? `
+
+                            <div class="modal-section-title">
+                                Détails de l'exemplaire
+                            </div>
+
+
+                            <div class="modal-grid">
+
+                                <div class="modal-stat-box">
+                                    <span class="modal-stat-label">
+                                        État de la boîte
+                                    </span>
+                                    <span class="modal-stat-val">
+                                        ${escapeHtml(condition)}
+                                    </span>
+                                </div>
+
+
+                                <div class="modal-stat-box">
+                                    <span class="modal-stat-label">
+                                        Contenu
+                                    </span>
+                                    <span class="modal-stat-val">
+                                        ${complete
+                ? "Complet"
+                : "Non complet"
+            }
+                                    </span>
+                                </div>
+
+
+                                <div class="modal-stat-box">
+                                    <span class="modal-stat-label">
+                                        Code produit
+                                    </span>
+                                    <span class="modal-stat-val">
+                                        ${escapeHtml(serial)}
+                                    </span>
+                                </div>
+
+
+                                <div class="modal-stat-box">
+                                    <span class="modal-stat-label">
+                                        Édition
+                                    </span>
+                                    <span class="modal-stat-val">
+                                        ${escapeHtml(edition)}
+                                    </span>
+                                </div>
+
+                            </div>
+
+                          `
+            : `
+                            <div class="modal-section-title">
+                                Détails de la recherche
+                            </div>
+                          `
+        }
+
+
+                ${notes
+            ? `
+
+                            <div class="modal-section-title">
+                                Notes
+                            </div>
+
+                            <div class="modal-notes-box">
+                                ${escapeHtml(notes)}
+                            </div>
+
+                          `
+            : ""
+        }
+
+            </div>
+
+        </div>
+    `;
+
+
+    document.body.appendChild(
+        modal
+    );
+
+
+    requestAnimationFrame(
+        () => {
+            modal.classList.add(
+                "active"
+            );
+        }
+    );
+
+
+    const closeModal =
+        () => {
+
+            modal.classList.remove(
+                "active"
+            );
+
+            setTimeout(
+                () => modal.remove(),
+                250
+            );
+        };
+
+
+    document
+        .getElementById(
+            "closeGameModal"
+        )
+        ?.addEventListener(
+            "click",
+            closeModal
+        );
+
+
+    modal.addEventListener(
+        "click",
+        event => {
+
+            if (
+                event.target === modal
+            ) {
+                closeModal();
+            }
+        }
+    );
+
+
+    document.addEventListener(
+        "keydown",
+        function escapeHandler(event) {
+
+            if (
+                event.key === "Escape"
+            ) {
+
+                closeModal();
+
+                document.removeEventListener(
+                    "keydown",
+                    escapeHandler
+                );
+            }
+        }
+    );
+}
+
 // 5. Render Current View
 function renderCurrentView() {
     if (!collectionList) return;
@@ -910,11 +1390,19 @@ function renderCurrentView() {
             card.setAttribute("role", "button");
             card.setAttribute("tabindex", "0");
             card.setAttribute("aria-label", `Voir les détails du jeu ${title}`);
-            card.addEventListener("click", () => openDetailModal(game, currentTab));
+            card.addEventListener("click", () => {
+                openGameDetails(
+                    game,
+                    currentTab === "wishlist"
+                );
+            });
             card.addEventListener("keydown", (e) => {
                 if (e.key === "Enter" || e.key === " ") {
                     e.preventDefault();
-                    openDetailModal(game, currentTab);
+                    openGameDetails(
+                        game,
+                        currentTab === "wishlist"
+                    );
                 }
             });
 
@@ -1058,9 +1546,9 @@ function generateDetailModalHtml(item, type) {
             <div style="margin-top: 14px;">
                 <div class="modal-checklist">
                     ${checkItems.filter(c => c.val !== undefined && c.val !== null && c.val !== "").map(c => {
-                        const isTrue = c.val === true || c.val === 1 || c.val === "1" || String(c.val).toLowerCase() === "oui" || String(c.val).toLowerCase() === "yes";
-                        return `<span class="modal-check-item ${isTrue ? "active" : "inactive"}">${c.label} : ${isTrue ? "✓ Oui" : "✗ Non"}</span>`;
-                    }).join("")}
+            const isTrue = c.val === true || c.val === 1 || c.val === "1" || String(c.val).toLowerCase() === "oui" || String(c.val).toLowerCase() === "yes";
+            return `<span class="modal-check-item ${isTrue ? "active" : "inactive"}">${c.label} : ${isTrue ? "✓ Oui" : "✗ Non"}</span>`;
+        }).join("")}
                 </div>
             </div>
         `;
