@@ -156,6 +156,44 @@ async function clearCacheDB() {
     } catch (err) { }
 }
 
+function getGameSpineUrl(game) {
+    if (!game) return "";
+    if (game.driveSpineImage) return game.driveSpineImage;
+    if (game.spineUrl) return game.spineUrl;
+    if (game.spineImage) return game.spineImage;
+    if (game.spine) return game.spine;
+    if (game.trancheUrl) return game.trancheUrl;
+    if (game.trancheImage) return game.trancheImage;
+    if (game.tranche) return game.tranche;
+    if (game.photo_tranche) return game.photo_tranche;
+
+    // Dans l'app : images[0] = face avant, images[1] = tranche, images[2] = face arrière
+    const list = Array.isArray(game.images) ? game.images : (Array.isArray(game.photos) ? game.photos : []);
+    if (list.length >= 2) {
+        const candidate = list[1];
+        if (typeof candidate === "string" && candidate.trim()) return candidate.trim();
+        if (candidate && typeof candidate === "object") {
+            const u = candidate.url || candidate.uri || candidate.path || candidate.src || candidate.file;
+            if (typeof u === "string" && u.trim()) return u.trim();
+        }
+    }
+
+    if (game.meta && typeof game.meta === "object") {
+        if (game.meta.spineImage) return game.meta.spineImage;
+        if (game.meta.spine) return game.meta.spine;
+        const metaList = Array.isArray(game.meta.images) ? game.meta.images : [];
+        if (metaList.length >= 2) {
+            const candidate = metaList[1];
+            if (typeof candidate === "string" && candidate.trim()) return candidate.trim();
+            if (candidate && typeof candidate === "object") {
+                return candidate.url || candidate.uri || candidate.path || "";
+            }
+        }
+    }
+
+    return "";
+}
+
 function applyEnrichedData(
     gameImages,
     wishlistImages,
@@ -170,8 +208,9 @@ function applyEnrichedData(
             const extra = manifestItemsMap.get(id) || {};
             const img = gameImages.get(id) || wishlistImages.get(id) || extra.image || game.driveImage || "";
             const spineImg =
-                spineImages.get(id) ||
-                game.driveSpineImage ||
+                (spineImages && spineImages.get(id)) ||
+                getGameSpineUrl(extra) ||
+                getGameSpineUrl(game) ||
                 "";
 
             return {
@@ -190,7 +229,8 @@ function applyEnrichedData(
             const img = wishlistImages.get(id) || gameImages.get(id) || extra.image || game.driveImage || "";
             const spineImg =
                 (spineImages && spineImages.get(id)) ||
-                game.driveSpineImage ||
+                getGameSpineUrl(extra) ||
+                getGameSpineUrl(game) ||
                 "";
             return {
                 ...extra,
@@ -482,7 +522,17 @@ async function loadCachedDataFromDB() {
 
             }
         );
-
+        // Check if any items in cachedManifestItemsMap have direct spine URLs
+        if (cachedManifestItemsMap.size > 0) {
+            cachedManifestItemsMap.forEach((item, id) => {
+                if (!cachedSpineImages.has(id)) {
+                    const spineUrl = getGameSpineUrl(item);
+                    if (spineUrl && (spineUrl.startsWith("http://") || spineUrl.startsWith("https://") || spineUrl.startsWith("data:"))) {
+                        cachedSpineImages.set(id, spineUrl);
+                    }
+                }
+            });
+        }
 
         const totalImages =
             cachedGameImages.size +
@@ -490,27 +540,18 @@ async function loadCachedDataFromDB() {
             cachedConsoleImages.size +
             cachedSpineImages.size;
 
-
         console.log(
             "Photos restaurées depuis le cache local IndexedDB :",
             {
                 total: totalImages,
-                jeux:
-                    cachedGameImages.size,
-                wishlist:
-                    cachedWishlistImages.size,
-                consoles:
-                    cachedConsoleImages.size,
-                tranches:
-                    cachedSpineImages.size
+                jeux: cachedGameImages.size,
+                wishlist: cachedWishlistImages.size,
+                consoles: cachedConsoleImages.size,
+                tranches: cachedSpineImages.size
             }
         );
 
-
-        if (
-            totalImages > 0
-        ) {
-
+        if (totalImages > 0) {
             applyEnrichedData(
                 cachedGameImages,
                 cachedWishlistImages,
@@ -520,20 +561,13 @@ async function loadCachedDataFromDB() {
                 cachedManifestConsolesMap
             );
 
-            return true;
+            return { success: true, spineCount: cachedSpineImages.size, total: totalImages };
         }
 
-
-        return false;
-
+        return { success: false, spineCount: 0, total: 0 };
     } catch (error) {
-
-        console.warn(
-            "Erreur lecture cache local :",
-            error
-        );
-
-        return false;
+        console.warn("Erreur lecture cache local :", error);
+        return { success: false, spineCount: 0, total: 0 };
     }
 }
 
@@ -725,216 +759,194 @@ async function loadGoogleDriveImages() {
         new Map();
 
     /*
-     * Parcours directement TOUS les fichiers
-     * présents dans le ZIP.
+     * Fonctions d'aide pour retrouver un fichier dans le ZIP
      */
-    for (
-        const [
-            path,
-            file
-        ] of Object.entries(zip.files)
-    ) {
+    function extractItemSpineRef(item) {
+        if (!item) return "";
+        if (typeof item.spineImage === "string" && item.spineImage.trim()) return item.spineImage.trim();
+        if (typeof item.spineUrl === "string" && item.spineUrl.trim()) return item.spineUrl.trim();
+        if (typeof item.spine === "string" && item.spine.trim()) return item.spine.trim();
+        if (typeof item.tranche === "string" && item.tranche.trim()) return item.tranche.trim();
+        if (typeof item.trancheImage === "string" && item.trancheImage.trim()) return item.trancheImage.trim();
+        if (typeof item.photo_tranche === "string" && item.photo_tranche.trim()) return item.photo_tranche.trim();
 
-        if (file.dir) {
+        // Dans l'app : images[0] = face avant, images[1] = tranche, images[2] = face arrière
+        const list = Array.isArray(item.images) ? item.images : (Array.isArray(item.photos) ? item.photos : []);
+        if (list.length >= 2) {
+            const candidate = list[1];
+            if (typeof candidate === "string" && candidate.trim()) return candidate.trim();
+            if (candidate && typeof candidate === "object") {
+                return candidate.path || candidate.uri || candidate.url || candidate.file || candidate.src || "";
+            }
+        }
+        return "";
+    }
+
+    function findFileInZip(zip, ref) {
+        if (!ref || typeof ref !== "string") return null;
+        let clean = ref.replace(/\\/g, "/").replace(/^\/+/, "");
+        if (clean.startsWith("file://")) clean = clean.replace(/^file:\/\/\/?/, "");
+
+        // 1. Chemin direct
+        let f = zip.file(clean);
+        if (f) return f;
+
+        // 2. Avec préfixe images/ ou images/games/
+        f = zip.file("images/" + clean) || zip.file("images/games/" + clean);
+        if (f) return f;
+
+        // 3. Avec juste le nom de fichier (basename)
+        const base = clean.split("/").pop();
+        if (base) {
+            f = zip.file(base) ||
+                zip.file("images/" + base) ||
+                zip.file("images/games/" + base) ||
+                zip.file("images/wishlist/" + base) ||
+                zip.file("images/spines/" + base) ||
+                zip.file("images/tranches/" + base);
+            if (f) return f;
+
+            // 4. Recherche insensible à la casse dans l'ensemble des fichiers du ZIP
+            const lowerBase = base.toLowerCase();
+            for (const [zPath, zFile] of Object.entries(zip.files)) {
+                if (zFile.dir) continue;
+                if (zPath.toLowerCase().endsWith(lowerBase)) {
+                    return zFile;
+                }
+            }
+        }
+        return null;
+    }
+
+    /*
+     * Parcours directement TOUS les fichiers présents dans le ZIP.
+     */
+    for (const [path, file] of Object.entries(zip.files)) {
+        if (file.dir) continue;
+
+        /*
+         * 1. Tranches jeux possédés ou wishlist
+         * Exemples : images/games/123_spine.webp, images/games/123_tranche.webp, images/games/123_1.webp, images/spines/123.webp
+         */
+        let spineMatch =
+            path.match(/^images\/games\/(.+?)_(?:spine|tranche|edge|side|1)\.(webp|png|jpe?g|gif)$/i) ||
+            path.match(/^images\/wishlist\/(.+?)_(?:spine|tranche|edge|side|1)\.(webp|png|jpe?g|gif)$/i) ||
+            path.match(/^images\/(?:spines?|tranches?)\/(.+?)(?:_cover|_spine|_tranche|_1)?\.(webp|png|jpe?g|gif)$/i) ||
+            path.match(/^(?:spines?|tranches?)\/(.+?)\.(webp|png|jpe?g|gif)$/i);
+
+        if (spineMatch) {
+            const id = String(spineMatch[1]);
+            const blob = await file.async("blob");
+            entriesToCache.push({ key: `spine_${id}`, val: blob });
+            const url = URL.createObjectURL(blob);
+            driveImageObjectUrls.push(url);
+            spineImages.set(id, url);
             continue;
         }
 
-
         /*
-         * Jeux possédés
-         *
-         * images/games/ID_cover.webp
+         * 2. Jaquettes jeux possédés
+         * Exemples : images/games/123_cover.webp, images/games/123_0.webp
          */
         let match =
-            path.match(
-                /^images\/games\/(.+)_cover\.(webp|png|jpe?g|gif)$/i
-            );
+            path.match(/^images\/games\/(.+?)_(?:cover|0)\.(webp|png|jpe?g|gif)$/i) ||
+            path.match(/^images\/games\/(.+?)\.(webp|png|jpe?g|gif)$/i);
 
         if (match) {
-
-            const id =
-                String(match[1]);
-
-            const blob =
-                await file.async("blob");
-
+            const id = String(match[1]);
+            const blob = await file.async("blob");
             entriesToCache.push({ key: `game_${id}`, val: blob });
-
-            const url =
-                URL.createObjectURL(blob);
-
+            const url = URL.createObjectURL(blob);
             driveImageObjectUrls.push(url);
-
-            gameImages.set(
-                id,
-                url
-            );
-
+            gameImages.set(id, url);
             continue;
         }
 
-
         /*
-         * Wishlist
-         *
-         * images/wishlist/ID_cover.webp
+         * 3. Wishlist
          */
         match =
-            path.match(
-                /^images\/wishlist\/(.+)_cover\.(webp|png|jpe?g|gif)$/i
-            );
+            path.match(/^images\/wishlist\/(.+?)_(?:cover|0)\.(webp|png|jpe?g|gif)$/i) ||
+            path.match(/^images\/wishlist\/(.+?)\.(webp|png|jpe?g|gif)$/i);
 
         if (match) {
-
-            const id =
-                String(match[1]);
-
-            const blob =
-                await file.async("blob");
-
+            const id = String(match[1]);
+            const blob = await file.async("blob");
             entriesToCache.push({ key: `wishlist_${id}`, val: blob });
-
-            const url =
-                URL.createObjectURL(blob);
-
+            const url = URL.createObjectURL(blob);
             driveImageObjectUrls.push(url);
-
-            wishlistImages.set(
-                id,
-                url
-            );
-
+            wishlistImages.set(id, url);
             continue;
         }
-
 
         /*
-         * Consoles
-         *
-         * images/consoles/ID_cover.webp
+         * 4. Consoles
          */
         match =
-            path.match(
-                /^images\/consoles\/(.+)_cover\.(webp|png|jpe?g|gif)$/i
-            );
+            path.match(/^images\/consoles\/(.+?)_cover\.(webp|png|jpe?g|gif)$/i) ||
+            path.match(/^images\/consoles\/(.+?)\.(webp|png|jpe?g|gif)$/i);
 
         if (match) {
-
-            const id =
-                String(match[1]);
-
-            const blob =
-                await file.async("blob");
-
+            const id = String(match[1]);
+            const blob = await file.async("blob");
             entriesToCache.push({ key: `console_${id}`, val: blob });
-
-            const url =
-                URL.createObjectURL(blob);
-
+            const url = URL.createObjectURL(blob);
             driveImageObjectUrls.push(url);
-
-            consoleImages.set(
-                id,
-                url
-            );
+            consoleImages.set(id, url);
+            continue;
         }
     }
 
-
-    console.log(
-        "Photos trouvées dans le ZIP :",
-        {
-            jeux: gameImages.size,
-            wishlist: wishlistImages.size,
-            consoles: consoleImages.size
-        }
-    );
-
     /*
- * Photos de tranche des jeux.
- *
- * Dans l'application :
- * images[0] = face avant
- * images[1] = tranche
- * images[2] = face arrière
- */
-    for (
-        const [id, item]
-        of manifestItemsMap.entries()
-    ) {
+     * 5. Compléter avec les références du manifest.json ou des items
+     */
+    const allItemsToCrossCheck = new Map(manifestItemsMap);
+    if (parsedData.ownedGames) {
+        parsedData.ownedGames.forEach(g => {
+            const id = String(g.id);
+            if (!allItemsToCrossCheck.has(id)) allItemsToCrossCheck.set(id, g);
+        });
+    }
+    if (parsedData.wishlistGames) {
+        parsedData.wishlistGames.forEach(g => {
+            const id = String(g.id);
+            if (!allItemsToCrossCheck.has(id)) allItemsToCrossCheck.set(id, g);
+        });
+    }
 
-        const images =
-            Array.isArray(item.images)
-                ? item.images
-                : [];
+    for (const [id, item] of allItemsToCrossCheck.entries()) {
+        if (spineImages.has(String(id))) continue;
 
-        const possibleRefs = [
-            item.spineImage || "",
-            images.length >= 2
-                ? images[1]
-                : ""
-        ];
+        const ref = extractItemSpineRef(item);
+        if (!ref) continue;
 
-        let spineFile = null;
-
-        for (const ref of possibleRefs) {
-
-            if (
-                !ref ||
-                typeof ref !== "string"
-            ) {
-                continue;
-            }
-
-            const path =
-                ref.replace(/^\/+/, "");
-
-            const candidate =
-                zip.file(path);
-
-            if (candidate) {
-                spineFile = candidate;
-                break;
-            }
-        }
-
-        if (!spineFile) {
+        if (ref.startsWith("http://") || ref.startsWith("https://") || ref.startsWith("data:")) {
+            spineImages.set(String(id), ref);
             continue;
         }
 
-        const blob =
-            await spineFile.async(
-                "blob"
-            );
-
-        entriesToCache.push({
-            key: `spine_${id}`,
-            val: blob
-        });
-
-        const url =
-            URL.createObjectURL(
-                blob
-            );
-
-        driveImageObjectUrls.push(
-            url
-        );
-
-        spineImages.set(
-            String(id),
-            url
-        );
+        const spineFile = findFileInZip(zip, ref);
+        if (spineFile) {
+            const blob = await spineFile.async("blob");
+            entriesToCache.push({ key: `spine_${id}`, val: blob });
+            const url = URL.createObjectURL(blob);
+            driveImageObjectUrls.push(url);
+            spineImages.set(String(id), url);
+        }
     }
 
-    console.log(
-        "Tranches trouvées :",
-        spineImages.size
-    );
+    console.log("Photos trouvées dans le ZIP :", {
+        jeux: gameImages.size,
+        tranches: spineImages.size,
+        wishlist: wishlistImages.size,
+        consoles: consoleImages.size
+    });
 
-    /*
-     * Sauvegarde automatique dans le cache persistant IndexedDB
-     */
+    if (spineImages.size === 0) {
+        const sampleFiles = Object.keys(zip.files).filter(p => !zip.files[p].dir).slice(0, 30);
+        console.warn("Aperçu des 30 premiers fichiers dans le ZIP :", sampleFiles);
+    }
+
     if (entriesToCache.length > 0) {
         saveToCache(entriesToCache);
     }
@@ -1024,7 +1036,9 @@ onAuthStateChanged(auth, async (user) => {
         processCollectionData(data);
 
         // 1. Tenter d'abord de charger immédiatement les photos depuis le cache local IndexedDB
-        const hasCachedImages = await loadCachedDataFromDB();
+        const cacheResult = await loadCachedDataFromDB();
+        const hasCachedImages = cacheResult && cacheResult.success;
+        const cachedSpines = (cacheResult && cacheResult.spineCount) || 0;
         renderCurrentView();
 
         if (loading) loading.style.display = "none";
@@ -1043,14 +1057,20 @@ onAuthStateChanged(auth, async (user) => {
                 if (driveSyncBanner) driveSyncBanner.style.display = "none";
             } catch (driveError) {
                 console.warn("Photos Google Drive :", driveError);
-                if (!hasCachedImages && driveSyncBanner) {
+                if ((!hasCachedImages || cachedSpines === 0) && driveSyncBanner) {
                     driveSyncBanner.style.display = "flex";
                 }
             }
         } else {
-            // Aucun jeton en mémoire : si le cache n'a pas les images, proposer le bouton de synchronisation
-            if (!hasCachedImages && driveSyncBanner) {
+            // Aucun jeton en mémoire : si le cache n'a pas les images OU si les tranches n'ont pas encore été synchronisées
+            if ((!hasCachedImages || cachedSpines === 0) && driveSyncBanner) {
                 driveSyncBanner.style.display = "flex";
+                const bannerTitle = driveSyncBanner.querySelector(".drive-sync-text strong");
+                const bannerSpan = driveSyncBanner.querySelector(".drive-sync-text span");
+                if (hasCachedImages && cachedSpines === 0 && bannerTitle && bannerSpan) {
+                    bannerTitle.textContent = "Photos réelles des tranches disponibles";
+                    bannerSpan.textContent = "Cliquez sur 'Charger mes photos' pour importer les photos des tranches de vos jeux depuis votre backup Google Drive.";
+                }
             }
         }
 
@@ -2024,7 +2044,7 @@ function createGameSpineElement(game, platformName) {
 
     const title = game.title || game.name || "Jeu sans titre";
     const coverUrl = getGameCoverUrl(game);
-    const spinePhotoUrl = game.driveSpineImage || "";
+    const spinePhotoUrl = getGameSpineUrl(game);
     const isWishlist = currentTab === "wishlist";
     const statusColor = isWishlist ? "var(--yellow)" : "var(--green)";
 
@@ -2043,6 +2063,7 @@ function createGameSpineElement(game, platformName) {
             alt="Tranche de ${escapeHtml(title)}"
             class="spine-real-photo"
             loading="lazy"
+            onerror="this.style.display='none';"
         >
       `
             : `
