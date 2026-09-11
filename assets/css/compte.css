@@ -360,45 +360,22 @@
 .console-card {
     background: var(--background-card);
     border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    padding: 22px;
-    display: flex;
-    align-items: center;
-    gap: 18px;
+    border-radius: var(--radius-md);
+    overflow: hidden;
     backdrop-filter: blur(14px);
-    transition: all var(--transition-fast);
+    transition: transform var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast);
+    display: flex;
+    flex-direction: column;
 }
 
 .console-card:hover {
-    transform: translateY(-3px);
+    transform: translateY(-4px);
     border-color: rgba(255, 45, 164, 0.4);
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 15px rgba(255, 45, 164, 0.15);
 }
 
-.console-icon-wrap {
-    width: 54px;
-    height: 54px;
-    border-radius: var(--radius-md);
-    background: rgba(255, 45, 164, 0.1);
-    border: 1px solid rgba(255, 45, 164, 0.25);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.7rem;
-    color: var(--pink);
-    flex-shrink: 0;
-}
-
-.console-info h3 {
-    font-size: 1.08rem;
-    font-weight: 700;
-    color: #ffffff;
-    margin-bottom: 4px;
-}
-
-.console-brand {
-    font-size: 0.85rem;
-    color: var(--text-muted);
+.console-card:hover .game-cover-img {
+    transform: scale(1.05);
 }
 
 /* Loading & Empty States */

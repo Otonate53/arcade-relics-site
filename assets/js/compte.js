@@ -807,31 +807,23 @@ function renderCurrentView() {
                 consoleItem.driveImage ||
                 consoleItem.image ||
                 consoleItem.cover ||
+                consoleItem.photo ||
                 "";
 
+            const coverHtml = consoleImage
+                ? `<img src="${escapeHtml(consoleImage)}" alt="${escapeHtml(name)}" class="game-cover-img" loading="lazy">`
+                : `<div class="game-cover-fallback"><span>🕹️</span><small style="font-size:0.75rem;color:var(--text-dim);">${escapeHtml(brand)}</small></div>`;
+
             card.innerHTML = `
-              <div class="console-icon-wrap">
-
-    ${consoleImage
-                    ? `
-                <img
-                    src="${escapeHtml(consoleImage)}"
-                    alt="${escapeHtml(name)}"
-                    style="
-                        width:100%;
-                        height:100%;
-                        object-fit:cover;
-                        border-radius:inherit;
-                    "
-                >
-              `
-                    : "🕹️"
-                }
-
-</div>
-                <div class="console-info">
-                    <h3>${escapeHtml(name)}</h3>
-                    <span class="console-brand">${escapeHtml(brand)}</span>
+                <div class="game-cover-wrap">
+                    ${coverHtml}
+                </div>
+                <div class="game-card-body">
+                    <h3 class="game-title" title="${escapeHtml(name)}">${escapeHtml(name)}</h3>
+                    <div class="game-meta-row">
+                        <span class="platform-pill" style="color: var(--pink); border-color: rgba(255, 45, 164, 0.3); background: rgba(255, 45, 164, 0.1);" title="${escapeHtml(brand)}">${escapeHtml(brand)}</span>
+                        <span class="status-indicator" style="color: var(--pink);">🕹️ Console</span>
+                    </div>
                 </div>
             `;
             collectionList.appendChild(card);
