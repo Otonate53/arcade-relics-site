@@ -89,6 +89,9 @@ async function loadGoogleDriveImages() {
     const accessToken =
         sessionStorage.getItem(
             "arcade_relics_drive_token"
+        ) ||
+        localStorage.getItem(
+            "arcade_relics_drive_token"
         );
 
     if (!accessToken) {
@@ -513,8 +516,17 @@ let currentTab = "games"; // "games" | "consoles" | "wishlist" | "profile"
 // 1. Listen for Authentication
 onAuthStateChanged(auth, async (user) => {
     if (!user) {
+        localStorage.removeItem("arcade_relics_logged_in");
+        localStorage.removeItem("arcade_relics_user_email");
+        localStorage.removeItem("arcade_relics_drive_token");
+        sessionStorage.removeItem("arcade_relics_drive_token");
         window.location.href = "index.html?login=true";
         return;
+    }
+
+    localStorage.setItem("arcade_relics_logged_in", "true");
+    if (user.email) {
+        localStorage.setItem("arcade_relics_user_email", user.email);
     }
 
     if (userEmail) {
@@ -1479,6 +1491,10 @@ if (tabProfile) tabProfile.addEventListener("click", () => switchTab("profile"))
 if (profileLogoutBtn) {
     profileLogoutBtn.addEventListener("click", async () => {
         try {
+            localStorage.removeItem("arcade_relics_logged_in");
+            localStorage.removeItem("arcade_relics_user_email");
+            localStorage.removeItem("arcade_relics_drive_token");
+            sessionStorage.removeItem("arcade_relics_drive_token");
             await signOut(auth);
             window.location.href = "index.html";
         } catch (e) {
@@ -1499,6 +1515,10 @@ if (collectionSearch) {
 if (logoutBtn) {
     logoutBtn.addEventListener("click", async () => {
         try {
+            localStorage.removeItem("arcade_relics_logged_in");
+            localStorage.removeItem("arcade_relics_user_email");
+            localStorage.removeItem("arcade_relics_drive_token");
+            sessionStorage.removeItem("arcade_relics_drive_token");
             await signOut(auth);
             window.location.href = "index.html";
         } catch (e) {

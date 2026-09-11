@@ -70,11 +70,19 @@ if (googleLoginBtn) {
                     googleCredential?.accessToken || "";
 
                 if (driveAccessToken) {
-
                     sessionStorage.setItem(
                         "arcade_relics_drive_token",
                         driveAccessToken
                     );
+                    localStorage.setItem(
+                        "arcade_relics_drive_token",
+                        driveAccessToken
+                    );
+                }
+
+                localStorage.setItem("arcade_relics_logged_in", "true");
+                if (user.email) {
+                    localStorage.setItem("arcade_relics_user_email", user.email);
                 }
 
                 console.log(
@@ -107,6 +115,9 @@ onAuthStateChanged(
     auth,
     (user) => {
 
+        const navLoginBtn = document.getElementById("navLoginBtn");
+        const navLinkMobileLogin = document.getElementById("navLinkMobileLogin");
+
         if (user) {
 
             console.log(
@@ -119,18 +130,23 @@ onAuthStateChanged(
                 user.uid
             );
 
+            localStorage.setItem("arcade_relics_logged_in", "true");
+            if (user.email) {
+                localStorage.setItem("arcade_relics_user_email", user.email);
+            }
+
             // Update navbar on index.html to link directly to collection
-            const navLoginBtn = document.getElementById("navLoginBtn");
-            const navLinkMobileLogin = document.getElementById("navLinkMobileLogin");
             if (navLoginBtn) {
                 navLoginBtn.classList.add("logged-in");
                 navLoginBtn.href = "compte.html";
+                navLoginBtn.setAttribute("aria-label", "Accéder à ma collection");
                 navLoginBtn.innerHTML = `
                     <span style="width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);display:inline-block;"></span>
                     <span class="nav-login-label">Ma Collection</span>
                 `;
             }
             if (navLinkMobileLogin) {
+                navLinkMobileLogin.classList.add("logged-in");
                 navLinkMobileLogin.href = "compte.html";
                 navLinkMobileLogin.innerHTML = `
                     <span style="width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);display:inline-block;"></span>
@@ -143,6 +159,35 @@ onAuthStateChanged(
             console.log(
                 "Utilisateur déconnecté"
             );
+
+            localStorage.removeItem("arcade_relics_logged_in");
+            localStorage.removeItem("arcade_relics_user_email");
+            localStorage.removeItem("arcade_relics_drive_token");
+            sessionStorage.removeItem("arcade_relics_drive_token");
+
+            if (navLoginBtn) {
+                navLoginBtn.classList.remove("logged-in");
+                navLoginBtn.href = "#connexion";
+                navLoginBtn.setAttribute("aria-label", "Se connecter avec Google");
+                navLoginBtn.innerHTML = `
+                    <svg class="icon nav-login-icon" viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                        <circle cx="12" cy="7" r="4" />
+                    </svg>
+                    <span class="nav-login-label">Connexion</span>
+                `;
+            }
+            if (navLinkMobileLogin) {
+                navLinkMobileLogin.classList.remove("logged-in");
+                navLinkMobileLogin.href = "#connexion";
+                navLinkMobileLogin.innerHTML = `
+                    <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                        <circle cx="12" cy="7" r="4" />
+                    </svg>
+                    <span>Connexion</span>
+                `;
+            }
 
         }
 

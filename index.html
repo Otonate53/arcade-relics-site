@@ -82,6 +82,27 @@
             </button>
         </div>
     </header>
+    <script>
+        (function() {
+            try {
+                if (localStorage.getItem("arcade_relics_logged_in") === "true") {
+                    var btn = document.getElementById("navLoginBtn");
+                    var mBtn = document.getElementById("navLinkMobileLogin");
+                    if (btn) {
+                        btn.classList.add("logged-in");
+                        btn.href = "compte.html";
+                        btn.setAttribute("aria-label", "Accéder à ma collection");
+                        btn.innerHTML = '<span style="width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);display:inline-block;"></span><span class="nav-login-label">Ma Collection</span>';
+                    }
+                    if (mBtn) {
+                        mBtn.classList.add("logged-in");
+                        mBtn.href = "compte.html";
+                        mBtn.innerHTML = '<span style="width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);display:inline-block;"></span><span>Ma Collection</span>';
+                    }
+                }
+            } catch(e){}
+        })();
+    </script>
 
     <main>
         <!-- HERO SECTION -->
@@ -887,8 +908,8 @@
 
     <!-- Scripts -->
     <script src="assets/js/main.js?v=20260908_1445" defer></script>
-    <script src="assets/js/connexion.js?v=20260910" defer></script>
-    <script type="module" src="assets/js/firebase-auth.js?v=1">
+    <script src="assets/js/connexion.js?v=20260911_auth" defer></script>
+    <script type="module" src="assets/js/firebase-auth.js?v=20260911_auth">
     </script>
 </body>
 
