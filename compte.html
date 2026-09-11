@@ -24,7 +24,7 @@
 
     <!-- Stylesheets -->
     <link rel="stylesheet" href="assets/css/style.css?v=20260908_2016">
-    <link rel="stylesheet" href="assets/css/compte.css?v=20260911_console">
+    <link rel="stylesheet" href="assets/css/compte.css?v=20260911_details1">
 </head>
 
 <body class="account-body">
@@ -169,10 +169,29 @@
         </div>
     </main>
 
+    <!-- =========================================================================
+         DETAIL MODAL (Game & Console Inspector from Mobile App)
+         ========================================================================= -->
+    <div class="item-modal-overlay" id="itemModalOverlay" role="dialog" aria-modal="true" aria-hidden="true">
+        <div class="item-modal-wrapper">
+            <div class="modal-ambient-aura" id="modalAmbientAura" aria-hidden="true"></div>
+            <div class="item-modal-card" id="itemModalCard">
+                <button type="button" class="item-modal-close-btn" id="itemModalCloseBtn" aria-label="Fermer la fiche détaillée">
+                    <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+                        <path d="M18 6 6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+                    </svg>
+                </button>
+                <div class="item-modal-content" id="itemModalContent">
+                    <!-- Populated dynamically by compte.js -->
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Module Script -->
     <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js">
     </script>
-    <script type="module" src="assets/js/compte.js?v=20260911_console">
+    <script type="module" src="assets/js/compte.js?v=20260911_details1">
     </script>
 </body>
 

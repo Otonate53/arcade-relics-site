@@ -209,6 +209,36 @@ async function loadGoogleDriveImages() {
             zipBuffer
         );
 
+    /*
+     * Lecture du manifest.json du backup
+     * pour récupérer toutes les métadonnées détaillées
+     * saisies sur l'application mobile.
+     */
+    let manifestItemsMap = new Map();
+    let manifestConsolesMap = new Map();
+    const manifestFile = zip.file("manifest.json") || zip.file("backup.json");
+    if (manifestFile) {
+        try {
+            const manifestText = await manifestFile.async("string");
+            const manifestJson = JSON.parse(manifestText);
+            const values = manifestJson.values || manifestJson;
+            const bItems = parseBackupArray(values.otr_items || values.items);
+            const bConsoles = parseBackupArray(values.otr_user_consoles || values.consoles);
+            bItems.forEach(it => {
+                if (it && it.id != null) manifestItemsMap.set(String(it.id), it);
+            });
+            bConsoles.forEach(c => {
+                if (c && c.id != null) manifestConsolesMap.set(String(c.id), c);
+            });
+            console.log("Manifest Arcade Relics analysé :", {
+                items: manifestItemsMap.size,
+                consoles: manifestConsolesMap.size
+            });
+        } catch (manifestError) {
+            console.warn("Erreur analyse manifest :", manifestError);
+        }
+    }
+
 
     /*
      * Nettoyage des anciennes URL temporaires.
@@ -352,24 +382,23 @@ async function loadGoogleDriveImages() {
 
 
     /*
-     * Association avec les jeux Firestore.
+     * Association avec les jeux Firestore et enrichissement via le manifest.
      */
     parsedData.ownedGames =
         parsedData.ownedGames.map(
-            game => ({
-                ...game,
-
-                driveImage:
-                    gameImages.get(
-                        String(game.id)
-                    ) ||
-
-                    wishlistImages.get(
-                        String(game.id)
-                    ) ||
-
-                    ""
-            })
+            game => {
+                const id = String(game.id);
+                const extra = manifestItemsMap.get(id) || {};
+                return {
+                    ...extra,
+                    ...game,
+                    driveImage:
+                        gameImages.get(id) ||
+                        wishlistImages.get(id) ||
+                        extra.image ||
+                        ""
+                };
+            }
         );
 
 
@@ -378,20 +407,19 @@ async function loadGoogleDriveImages() {
      */
     parsedData.wishlistGames =
         parsedData.wishlistGames.map(
-            game => ({
-                ...game,
-
-                driveImage:
-                    wishlistImages.get(
-                        String(game.id)
-                    ) ||
-
-                    gameImages.get(
-                        String(game.id)
-                    ) ||
-
-                    ""
-            })
+            game => {
+                const id = String(game.id);
+                const extra = manifestItemsMap.get(id) || {};
+                return {
+                    ...extra,
+                    ...game,
+                    driveImage:
+                        wishlistImages.get(id) ||
+                        gameImages.get(id) ||
+                        extra.image ||
+                        ""
+                };
+            }
         );
 
 
@@ -400,16 +428,18 @@ async function loadGoogleDriveImages() {
      */
     parsedData.consoles =
         parsedData.consoles.map(
-            consoleItem => ({
-                ...consoleItem,
-
-                driveImage:
-                    consoleImages.get(
-                        String(consoleItem.id)
-                    ) ||
-
-                    ""
-            })
+            consoleItem => {
+                const id = String(consoleItem.id);
+                const extra = manifestConsolesMap.get(id) || {};
+                return {
+                    ...extra,
+                    ...consoleItem,
+                    driveImage:
+                        consoleImages.get(id) ||
+                        extra.image ||
+                        ""
+                };
+            }
         );
 
 
@@ -454,6 +484,13 @@ const badgeGames = document.getElementById("badgeGames");
 const badgeConsoles = document.getElementById("badgeConsoles");
 const badgeWishlist = document.getElementById("badgeWishlist");
 const collectionSearch = document.getElementById("collectionSearch");
+
+// Modal Elements
+const itemModalOverlay = document.getElementById("itemModalOverlay");
+const itemModalCard = document.getElementById("itemModalCard");
+const itemModalCloseBtn = document.getElementById("itemModalCloseBtn");
+const itemModalContent = document.getElementById("itemModalContent");
+const modalAmbientAura = document.getElementById("modalAmbientAura");
 
 // State storage
 let parsedData = {
@@ -826,6 +863,17 @@ function renderCurrentView() {
                     </div>
                 </div>
             `;
+            card.setAttribute("role", "button");
+            card.setAttribute("tabindex", "0");
+            card.setAttribute("aria-label", `Voir les détails de la console ${name}`);
+            card.addEventListener("click", () => openDetailModal(consoleItem, "consoles"));
+            card.addEventListener("keydown", (e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    openDetailModal(consoleItem, "consoles");
+                }
+            });
+
             collectionList.appendChild(card);
         });
     } else {
@@ -858,6 +906,18 @@ function renderCurrentView() {
                     </div>
                 </div>
             `;
+
+            card.setAttribute("role", "button");
+            card.setAttribute("tabindex", "0");
+            card.setAttribute("aria-label", `Voir les détails du jeu ${title}`);
+            card.addEventListener("click", () => openDetailModal(game, currentTab));
+            card.addEventListener("keydown", (e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    openDetailModal(game, currentTab);
+                }
+            });
+
             collectionList.appendChild(card);
         });
     }
@@ -912,3 +972,291 @@ if (logoutBtn) {
         }
     });
 }
+
+// 6. Modal Functions (Inspection des détails du jeu ou de la console)
+function openDetailModal(item, type) {
+    if (!itemModalOverlay || !itemModalContent) return;
+
+    if (modalAmbientAura) {
+        modalAmbientAura.className = "modal-ambient-aura";
+        if (type === "consoles") modalAmbientAura.classList.add("aura-pink");
+        else if (type === "wishlist") modalAmbientAura.classList.add("aura-yellow");
+    }
+
+    itemModalContent.innerHTML = generateDetailModalHtml(item, type);
+    itemModalOverlay.classList.add("active");
+    itemModalOverlay.setAttribute("aria-hidden", "false");
+    document.body.style.overflow = "hidden";
+}
+
+function closeDetailModal() {
+    if (!itemModalOverlay) return;
+    itemModalOverlay.classList.remove("active");
+    itemModalOverlay.setAttribute("aria-hidden", "true");
+    document.body.style.overflow = "";
+}
+
+function generateDetailModalHtml(item, type) {
+    const isConsole = type === "consoles";
+    const isWishlist = type === "wishlist";
+
+    const title = item.title || item.name || item.titre || (isConsole ? "Console" : "Jeu sans titre");
+    const platform = isConsole ? (item.brand || "Console") : getPlatformDisplayName(item);
+    const coverUrl = isConsole
+        ? (item.driveImage || item.image || item.cover || item.photo || "")
+        : getGameCoverUrl(item);
+
+    const coverHtml = coverUrl
+        ? `<img src="${escapeHtml(coverUrl)}" alt="${escapeHtml(title)}" class="modal-cover-img">`
+        : `<div class="modal-cover-fallback"><span>${isConsole ? "🕹️" : "🎮"}</span></div>`;
+
+    // Status Badge
+    let statusBadgeHtml = "";
+    if (isConsole) {
+        statusBadgeHtml = `<span class="modal-badge modal-badge-pink">🕹️ Console</span>`;
+    } else if (isWishlist) {
+        statusBadgeHtml = `<span class="modal-badge modal-badge-yellow">⭐ En Wishlist</span>`;
+    } else {
+        statusBadgeHtml = `<span class="modal-badge modal-badge-green">✓ Possédé</span>`;
+    }
+
+    // Platform Badge
+    const platformBadgeHtml = platform
+        ? `<span class="modal-badge ${isConsole ? "modal-badge-pink" : "modal-badge-cyan"}">${escapeHtml(platform)}</span>`
+        : "";
+
+    // Condition / État
+    const condition = item.condition || item.etat || item.state || "";
+    const conditionBadgeHtml = condition
+        ? `<span class="modal-badge modal-badge-purple">🏷️ État : ${escapeHtml(condition)}</span>`
+        : "";
+
+    // Region
+    const region = item.region || item.zone || item.country || "";
+    const regionBadgeHtml = region
+        ? `<span class="modal-badge modal-badge-neutral">🌍 ${escapeHtml(region)}</span>`
+        : "";
+
+    // Checklist (Boîte, Notice, Cale, etc.)
+    let checklistHtml = "";
+    const hasAnyCheck = [
+        "hasBox", "box", "boite",
+        "hasManual", "manual", "notice",
+        "hasInsert", "insert", "cale",
+        "hasCartridge", "cartridge", "cartouche"
+    ].some(k => item[k] !== undefined && item[k] !== null && item[k] !== "");
+
+    if (hasAnyCheck && !isConsole) {
+        const checkItems = [
+            { label: "📦 Boîte", val: item.hasBox ?? item.box ?? item.boite },
+            { label: "📖 Notice", val: item.hasManual ?? item.manual ?? item.notice },
+            { label: "📑 Cale / Insert", val: item.hasInsert ?? item.insert ?? item.cale },
+            { label: "💾 Cartouche / Disque", val: item.hasCartridge ?? item.cartridge ?? item.cartouche ?? item.disc }
+        ];
+
+        checklistHtml = `
+            <div style="margin-top: 14px;">
+                <div class="modal-checklist">
+                    ${checkItems.filter(c => c.val !== undefined && c.val !== null && c.val !== "").map(c => {
+                        const isTrue = c.val === true || c.val === 1 || c.val === "1" || String(c.val).toLowerCase() === "oui" || String(c.val).toLowerCase() === "yes";
+                        return `<span class="modal-check-item ${isTrue ? "active" : "inactive"}">${c.label} : ${isTrue ? "✓ Oui" : "✗ Non"}</span>`;
+                    }).join("")}
+                </div>
+            </div>
+        `;
+    }
+
+    // Key Stats Grid
+    const statBoxes = [];
+
+    // Financials
+    const price = item.purchasePrice ?? item.buyPrice ?? item.price ?? item.prix ?? item.prixAchat ?? item.prix_achat;
+    if (price !== undefined && price !== null && price !== "") {
+        const numPrice = typeof price === "number" ? price.toFixed(2) : price;
+        statBoxes.push({ label: "Prix d'achat", val: `${escapeHtml(numPrice)} €`, icon: "💰" });
+    }
+
+    const value = item.estimatedValue ?? item.currentValue ?? item.value ?? item.valeur ?? item.cote;
+    if (value !== undefined && value !== null && value !== "") {
+        const numVal = typeof value === "number" ? value.toFixed(2) : value;
+        statBoxes.push({ label: "Cote / Valeur", val: `${escapeHtml(numVal)} €`, icon: "📈" });
+    }
+
+    const purchaseDate = item.purchaseDate ?? item.buyDate ?? item.dateAchat ?? item.date_achat ?? item.date;
+    if (purchaseDate) {
+        statBoxes.push({ label: "Date d'acquisition", val: escapeHtml(String(purchaseDate)), icon: "📅" });
+    }
+
+    const location = item.purchaseLocation ?? item.location ?? item.lieu ?? item.lieuAchat ?? item.magasin ?? item.store;
+    if (location) {
+        statBoxes.push({ label: "Lieu d'achat", val: escapeHtml(String(location)), icon: "📍" });
+    }
+
+    // Game / Console Metadata
+    const releaseYear = item.releaseYear || item.releaseDate || item.year || item.annee;
+    if (releaseYear) {
+        statBoxes.push({ label: "Année de sortie", val: escapeHtml(String(releaseYear)), icon: "🗓️" });
+    }
+
+    const publisher = item.publisher || item.editor || item.editeur;
+    if (publisher) {
+        statBoxes.push({ label: "Éditeur", val: escapeHtml(String(publisher)), icon: "🏢" });
+    }
+
+    const developer = item.developer || item.developpeur;
+    if (developer) {
+        statBoxes.push({ label: "Développeur", val: escapeHtml(String(developer)), icon: "💻" });
+    }
+
+    const genre = Array.isArray(item.genres) ? item.genres.join(", ") : (item.genre || item.genres);
+    if (genre) {
+        statBoxes.push({ label: "Genre", val: escapeHtml(String(genre)), icon: "🎯" });
+    }
+
+    const edition = item.edition || item.version;
+    if (edition) {
+        statBoxes.push({ label: "Édition / Version", val: escapeHtml(String(edition)), icon: "✨" });
+    }
+
+    const rating = item.rating ?? item.note ?? item.score;
+    if (rating !== undefined && rating !== null && rating !== "") {
+        let ratingStr = String(rating);
+        const num = Number(rating);
+        if (!isNaN(num) && num > 0 && num <= 5) {
+            ratingStr = "⭐".repeat(Math.round(num)) + ` (${num}/5)`;
+        }
+        statBoxes.push({ label: "Note personnelle", val: ratingStr, icon: "⭐" });
+    }
+
+    const progress = item.progress || item.progression || item.statusProgression || item.completed;
+    if (progress !== undefined && progress !== null && progress !== "") {
+        let progStr = String(progress);
+        if (progress === true || progress === 1 || progress === "1") progStr = "Terminé 🏆";
+        statBoxes.push({ label: "Statut jeu", val: escapeHtml(progStr), icon: "🕹️" });
+    }
+
+    const storage = item.storage || item.emplacement || item.rangement || item.etagere;
+    if (storage) {
+        statBoxes.push({ label: "Emplacement / Rangement", val: escapeHtml(String(storage)), icon: "📦" });
+    }
+
+    const serial = item.serial || item.serialNumber || item.numeroSerie || item.numero_serie;
+    if (serial) {
+        statBoxes.push({ label: "Numéro de série", val: escapeHtml(String(serial)), icon: "🔢" });
+    }
+
+    const barcode = item.barcode || item.upc || item.ean || item.codeBarre || item.code_barre;
+    if (barcode) {
+        statBoxes.push({ label: "Code-barres / EAN", val: escapeHtml(String(barcode)), icon: "🏷️" });
+    }
+
+    const statsGridHtml = statBoxes.length > 0
+        ? `
+            <div class="modal-section-title">📊 Données de votre collection</div>
+            <div class="modal-grid">
+                ${statBoxes.map(s => `
+                    <div class="modal-stat-box">
+                        <div class="modal-stat-label">${s.icon} ${s.label}</div>
+                        <div class="modal-stat-val">${s.val}</div>
+                    </div>
+                `).join("")}
+            </div>
+        `
+        : "";
+
+    // Comments / Notes
+    const comment = item.comment || item.comments || item.notes || item.notePerso || item.description || item.remarque || item.remarques;
+    const commentHtml = comment
+        ? `
+            <div class="modal-section-title">📝 Notes & Commentaires personnels</div>
+            <div class="modal-notes-box">${escapeHtml(String(comment))}</div>
+        `
+        : "";
+
+    // Extra dynamic properties (catch-all so NO data entered on mobile is lost!)
+    const knownKeys = new Set([
+        "id", "consoleId", "console_id", "title", "name", "titre", "platform", "platformName",
+        "console", "consoleName", "system", "systemName", "brand", "manufacturer", "company",
+        "coverUrl", "cover", "image", "imageUrl", "thumbnail", "boxArt", "box_art", "picture",
+        "driveImage", "condition", "etat", "state", "region", "zone", "country",
+        "hasBox", "box", "boite", "hasManual", "manual", "notice", "hasInsert", "insert", "cale",
+        "hasCartridge", "cartridge", "cartouche", "disc", "cd",
+        "purchasePrice", "buyPrice", "price", "prix", "prixAchat", "prix_achat",
+        "estimatedValue", "currentValue", "value", "valeur", "cote",
+        "purchaseDate", "buyDate", "dateAchat", "date_achat", "date",
+        "purchaseLocation", "location", "lieu", "lieuAchat", "magasin", "store",
+        "releaseYear", "releaseDate", "year", "annee", "publisher", "editor", "editeur",
+        "developer", "developpeur", "genre", "genres", "edition", "version",
+        "rating", "note", "score", "progress", "progression", "statusProgression", "completed",
+        "storage", "emplacement", "rangement", "etagere", "serial", "serialNumber", "numeroSerie", "numero_serie",
+        "barcode", "upc", "ean", "codeBarre", "code_barre", "comment", "comments", "notes", "notePerso",
+        "description", "remarque", "remarques", "images", "tags"
+    ]);
+
+    const extraBoxes = [];
+    Object.keys(item).forEach(key => {
+        if (!knownKeys.has(key)) {
+            const val = item[key];
+            if (val !== undefined && val !== null && val !== "" && typeof val !== "object" && typeof val !== "function") {
+                extraBoxes.push({
+                    label: key.replace(/_/g, " "),
+                    val: escapeHtml(String(val))
+                });
+            }
+        }
+    });
+
+    const extraGridHtml = extraBoxes.length > 0
+        ? `
+            <div class="modal-section-title">ℹ️ Informations complémentaires</div>
+            <div class="modal-grid">
+                ${extraBoxes.map(e => `
+                    <div class="modal-stat-box">
+                        <div class="modal-stat-label">${escapeHtml(e.label)}</div>
+                        <div class="modal-stat-val">${e.val}</div>
+                    </div>
+                `).join("")}
+            </div>
+        `
+        : "";
+
+    return `
+        <div class="modal-hero">
+            <div class="modal-cover-wrap">
+                ${coverHtml}
+            </div>
+            <div class="modal-header-info">
+                <h2 class="modal-title">${escapeHtml(title)}</h2>
+                <div class="modal-badge-row">
+                    ${statusBadgeHtml}
+                    ${platformBadgeHtml}
+                    ${conditionBadgeHtml}
+                    ${regionBadgeHtml}
+                </div>
+                ${checklistHtml}
+            </div>
+        </div>
+        ${statsGridHtml}
+        ${commentHtml}
+        ${extraGridHtml}
+    `;
+}
+
+// Modal Listeners
+if (itemModalCloseBtn) {
+    itemModalCloseBtn.addEventListener("click", closeDetailModal);
+}
+
+if (itemModalOverlay) {
+    itemModalOverlay.addEventListener("click", (e) => {
+        if (e.target === itemModalOverlay) {
+            closeDetailModal();
+        }
+    });
+}
+
+window.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+        closeDetailModal();
+    }
+});
