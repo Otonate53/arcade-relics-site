@@ -24,7 +24,7 @@
 
     <!-- Stylesheets -->
     <link rel="stylesheet" href="assets/css/style.css?v=20260908_2016">
-    <link rel="stylesheet" href="assets/css/compte.css?v=20260911_modal_btn">
+    <link rel="stylesheet" href="assets/css/compte.css?v=20260911_shelf_view">
 </head>
 
 <body class="account-body">
@@ -142,6 +142,29 @@
                             placeholder="Rechercher un jeu, une console..."
                             aria-label="Rechercher dans votre collection">
                     </div>
+
+                    <!-- View Mode Toggle (Grille vs Étagère) -->
+                    <div class="view-mode-toggle" id="viewModeToggle" role="group" aria-label="Mode d'affichage">
+                        <button type="button" class="view-toggle-btn active" id="viewModeGrid" title="Affichage Vignettes / Grille" aria-pressed="true">
+                            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" stroke-width="2" aria-hidden="true">
+                                <rect x="3" y="3" width="7" height="7" rx="1.5" />
+                                <rect x="14" y="3" width="7" height="7" rx="1.5" />
+                                <rect x="14" y="14" width="7" height="7" rx="1.5" />
+                                <rect x="3" y="14" width="7" height="7" rx="1.5" />
+                            </svg>
+                            <span class="view-toggle-label">Grille</span>
+                        </button>
+                        <button type="button" class="view-toggle-btn" id="viewModeShelf" title="Affichage Étagère de bibliothèque" aria-pressed="false">
+                            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" stroke-width="2" aria-hidden="true">
+                                <line x1="2" y1="21" x2="22" y2="21" stroke-width="2.5" />
+                                <rect x="4" y="5" width="3.5" height="14" rx="0.8" />
+                                <rect x="8.5" y="3" width="3.5" height="16" rx="0.8" />
+                                <rect x="13" y="6" width="3.5" height="13" rx="0.8" />
+                                <rect x="17.5" y="4" width="3" height="15" rx="0.8" />
+                            </svg>
+                            <span class="view-toggle-label">Étagère</span>
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Profile Tab & Dashboard Content -->
@@ -253,7 +276,7 @@
     <!-- Module Script -->
     <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js">
     </script>
-    <script type="module" src="assets/js/compte.js?v=20260911_modal_btn">
+    <script type="module" src="assets/js/compte.js?v=20260911_shelf_view">
     </script>
 </body>
 

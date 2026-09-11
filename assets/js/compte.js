@@ -594,6 +594,12 @@ const badgeConsoles = document.getElementById("badgeConsoles");
 const badgeWishlist = document.getElementById("badgeWishlist");
 const collectionSearch = document.getElementById("collectionSearch");
 const searchBoxWrap = document.getElementById("searchBoxWrap");
+const viewModeToggle = document.getElementById("viewModeToggle");
+const viewModeGrid = document.getElementById("viewModeGrid");
+const viewModeShelf = document.getElementById("viewModeShelf");
+
+// View Mode State ("grid" | "shelf")
+let currentViewMode = localStorage.getItem("arcade_relics_view_mode") || "grid";
 
 // Profile Elements
 const profileContent = document.getElementById("profileContent");
@@ -1437,11 +1443,25 @@ function renderCurrentView() {
         if (emptyTabState) emptyTabState.style.display = "none";
         if (searchBoxWrap) searchBoxWrap.style.display = "none";
         if (profileContent) profileContent.style.display = "block";
+        if (viewModeToggle) viewModeToggle.style.display = "none";
         return;
     }
 
     if (profileContent) profileContent.style.display = "none";
     if (searchBoxWrap) searchBoxWrap.style.display = "flex";
+
+    // View mode toggle visible only for games and wishlist
+    if (viewModeToggle) {
+        viewModeToggle.style.display = (currentTab === "games" || currentTab === "wishlist") ? "inline-flex" : "none";
+    }
+
+    // Sync toggle button active states
+    if (viewModeGrid && viewModeShelf) {
+        viewModeGrid.classList.toggle("active", currentViewMode === "grid");
+        viewModeGrid.setAttribute("aria-pressed", String(currentViewMode === "grid"));
+        viewModeShelf.classList.toggle("active", currentViewMode === "shelf");
+        viewModeShelf.setAttribute("aria-pressed", String(currentViewMode === "shelf"));
+    }
 
     if (!collectionList) return;
     collectionList.innerHTML = "";
@@ -1472,11 +1492,12 @@ function renderCurrentView() {
         return;
     } else {
         if (emptyTabState) emptyTabState.style.display = "none";
-        collectionList.style.display = "grid";
+        collectionList.style.display = (currentViewMode === "shelf" && (currentTab === "games" || currentTab === "wishlist")) ? "flex" : "grid";
     }
 
-    // Render Cards
+    // Render Cards or Shelves
     if (currentTab === "consoles") {
+        collectionList.className = "items-grid";
         itemsToRender.forEach(consoleItem => {
             const card = document.createElement("div");
             card.className = "console-card";
@@ -1520,8 +1541,12 @@ function renderCurrentView() {
 
             collectionList.appendChild(card);
         });
+    } else if (currentViewMode === "shelf") {
+        // Shelf view (Tranches sur étagères de bibliothèque)
+        renderShelfView(itemsToRender);
     } else {
-        // Games & Wishlist
+        // Standard Grid view (Vignettes / Jaquettes)
+        collectionList.className = "items-grid";
         itemsToRender.forEach(game => {
             const card = document.createElement("div");
             card.className = "game-card";
@@ -1574,6 +1599,190 @@ function renderCurrentView() {
         });
     }
 }
+
+// 5b. Bookshelf View Helpers & Renderer
+function getSpineThemeClass(platformName) {
+    const p = (platformName || "").toLowerCase();
+    if (p.includes("playstation 2") || p.includes("ps2")) return "spine-ps2";
+    if (p.includes("switch")) return "spine-switch";
+    if (p.includes("playstation 5") || p.includes("ps5")) return "spine-ps5";
+    if (p.includes("playstation 4") || p.includes("ps4")) return "spine-ps4";
+    if (p.includes("playstation 3") || p.includes("ps3")) return "spine-ps3";
+    if (p.includes("playstation 1") || p.includes("ps1") || p.includes("psx") || p.includes("playstation")) return "spine-ps1";
+    if (p.includes("xbox 360") || p.includes("xbox one") || p.includes("xbox")) return "spine-xbox";
+    if (p.includes("gamecube") || p.includes("gc")) return "spine-gamecube";
+    if (p.includes("3ds") || p.includes("ds") || p.includes("nintendo ds")) return "spine-ds";
+    if (p.includes("game boy") || p.includes("gameboy") || p.includes("gba")) return "spine-gameboy";
+    if (p.includes("snes") || p.includes("nes") || p.includes("n64") || p.includes("nintendo 64")) return "spine-retro-nintendo";
+    if (p.includes("sega") || p.includes("mega drive") || p.includes("genesis") || p.includes("dreamcast") || p.includes("saturn")) return "spine-sega";
+    return "spine-default";
+}
+
+function getSpineShortTag(platformName) {
+    const p = (platformName || "").toLowerCase();
+    if (p.includes("playstation 2") || p.includes("ps2")) return "PS2";
+    if (p.includes("switch")) return "NSW";
+    if (p.includes("playstation 5") || p.includes("ps5")) return "PS5";
+    if (p.includes("playstation 4") || p.includes("ps4")) return "PS4";
+    if (p.includes("playstation 3") || p.includes("ps3")) return "PS3";
+    if (p.includes("playstation 1") || p.includes("ps1") || p.includes("psx")) return "PS1";
+    if (p.includes("xbox 360")) return "X360";
+    if (p.includes("xbox one")) return "XONE";
+    if (p.includes("xbox")) return "XBOX";
+    if (p.includes("gamecube")) return "NGC";
+    if (p.includes("3ds")) return "3DS";
+    if (p.includes("ds")) return "NDS";
+    if (p.includes("gba") || p.includes("advance")) return "GBA";
+    if (p.includes("game boy") || p.includes("gameboy")) return "GB";
+    if (p.includes("n64") || p.includes("nintendo 64")) return "N64";
+    if (p.includes("snes") || p.includes("super nintendo")) return "SNES";
+    if (p.includes("nes")) return "NES";
+    if (p.includes("mega drive") || p.includes("genesis")) return "MD";
+    if (p.includes("dreamcast")) return "DC";
+    return (platformName || "JEU").substring(0, 4).toUpperCase();
+}
+
+function createGameSpineElement(game, platformName) {
+    const spine = document.createElement("div");
+    const themeClass = getSpineThemeClass(platformName);
+    const shortTag = getSpineShortTag(platformName);
+    spine.className = `game-spine ${themeClass}`;
+
+    const title = game.title || game.name || "Jeu sans titre";
+    const coverUrl = getGameCoverUrl(game);
+    const isWishlist = currentTab === "wishlist";
+    const statusColor = isWishlist ? "var(--yellow)" : "var(--green)";
+
+    const condition = game.condition || game.etat || "";
+    const conditionLabel = condition ? escapeHtml(String(condition)) : "";
+
+    const previewCoverHtml = coverUrl
+        ? `<img src="${escapeHtml(coverUrl)}" alt="${escapeHtml(title)}" class="spine-preview-cover" loading="lazy">`
+        : `<div class="spine-preview-fallback"><span>🎮</span></div>`;
+
+    spine.innerHTML = `
+        <div class="spine-top">
+            <span class="spine-logo-tag" title="${escapeHtml(platformName)}">${escapeHtml(shortTag)}</span>
+        </div>
+
+        <div class="spine-title-wrap">
+            <span class="spine-title" title="${escapeHtml(title)}">${escapeHtml(title)}</span>
+        </div>
+
+        <div class="spine-bottom">
+            <span class="spine-status-indicator" style="color: ${statusColor};" title="${isWishlist ? 'Wishlist' : 'Possédé'}"></span>
+        </div>
+
+        <!-- Floating Preview Tooltip Card -->
+        <div class="spine-preview-card" aria-hidden="true">
+            ${previewCoverHtml}
+            <div class="spine-preview-info">
+                <div class="spine-preview-title">${escapeHtml(title)}</div>
+                <div class="spine-preview-meta">
+                    <span style="color: var(--cyan); font-weight: 600;">${escapeHtml(platformName)}</span>
+                    ${conditionLabel ? `<span>${conditionLabel}</span>` : ""}
+                </div>
+            </div>
+        </div>
+    `;
+
+    spine.setAttribute("role", "button");
+    spine.setAttribute("tabindex", "0");
+    spine.setAttribute("aria-label", `Voir les détails du jeu ${title}`);
+
+    spine.addEventListener("click", () => {
+        openGameDetails(game, currentTab === "wishlist");
+    });
+    spine.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            openGameDetails(game, currentTab === "wishlist");
+        }
+    });
+
+    return spine;
+}
+
+function renderShelfView(itemsToRender) {
+    if (!collectionList) return;
+    collectionList.className = "shelves-wrapper";
+
+    // Group items by platform
+    const groups = new Map();
+    itemsToRender.forEach(game => {
+        const platform = getPlatformDisplayName(game) || "Autres plateformes";
+        if (!groups.has(platform)) {
+            groups.set(platform, []);
+        }
+        groups.get(platform).push(game);
+    });
+
+    // Sort platforms alphabetically for clean library shelves
+    const sortedPlatforms = Array.from(groups.keys()).sort((a, b) => a.localeCompare(b));
+
+    sortedPlatforms.forEach(platformName => {
+        const gamesOnShelf = groups.get(platformName);
+        if (!gamesOnShelf || gamesOnShelf.length === 0) return;
+
+        const shelfSection = document.createElement("div");
+        shelfSection.className = "shelf-section";
+
+        const shelfHeader = document.createElement("div");
+        shelfHeader.className = "shelf-header";
+        shelfHeader.innerHTML = `
+            <div class="shelf-title-wrap">
+                <h3 class="shelf-title">
+                    <span>🎮 ${escapeHtml(platformName)}</span>
+                    <span class="shelf-count-badge">${gamesOnShelf.length} ${gamesOnShelf.length > 1 ? "jeux" : "jeu"}</span>
+                </h3>
+            </div>
+        `;
+
+        const shelfBoard = document.createElement("div");
+        shelfBoard.className = "shelf-board";
+
+        const booksRow = document.createElement("div");
+        booksRow.className = "shelf-books-row";
+
+        gamesOnShelf.forEach(game => {
+            const spine = createGameSpineElement(game, platformName);
+            booksRow.appendChild(spine);
+        });
+
+        const plank = document.createElement("div");
+        plank.className = "shelf-plank";
+
+        shelfBoard.appendChild(booksRow);
+        shelfBoard.appendChild(plank);
+
+        shelfSection.appendChild(shelfHeader);
+        shelfSection.appendChild(shelfBoard);
+
+        collectionList.appendChild(shelfSection);
+    });
+}
+
+// View Mode Handler
+function setViewMode(mode) {
+    currentViewMode = mode;
+    try {
+        localStorage.setItem("arcade_relics_view_mode", mode);
+    } catch (e) {
+        console.warn("Could not persist view mode:", e);
+    }
+
+    if (viewModeGrid && viewModeShelf) {
+        viewModeGrid.classList.toggle("active", mode === "grid");
+        viewModeGrid.setAttribute("aria-pressed", String(mode === "grid"));
+        viewModeShelf.classList.toggle("active", mode === "shelf");
+        viewModeShelf.setAttribute("aria-pressed", String(mode === "shelf"));
+    }
+
+    renderCurrentView();
+}
+
+if (viewModeGrid) viewModeGrid.addEventListener("click", () => setViewMode("grid"));
+if (viewModeShelf) viewModeShelf.addEventListener("click", () => setViewMode("shelf"));
 
 // Escape HTML utility
 function escapeHtml(str) {
