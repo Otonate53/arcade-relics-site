@@ -76,51 +76,38 @@ onAuthStateChanged(auth, async (user) => {
     }
 });
 
-// 2. Load and Decompress Cloud Snapshot from Firestore
 async function loadCloudSnapshot(uid) {
-    const rootReference = doc(db, "privateSync", uid);
-    const rootSnapshot = await getDoc(rootReference);
 
-    if (!rootSnapshot.exists()) {
-        throw new Error("Aucune sauvegarde cloud trouvée. Assurez-vous d'avoir activé la sauvegarde dans l'application mobile Arcade Relics.");
+    const collectionReference =
+        doc(
+            db,
+            "publicCollections",
+            uid
+        );
+
+    const collectionSnapshot =
+        await getDoc(
+            collectionReference
+        );
+
+    if (!collectionSnapshot.exists()) {
+
+        throw new Error(
+            "Aucune collection synchronisée trouvée."
+        );
     }
 
-    const chunkCount = rootSnapshot.data().chunkCount || 0;
-    if (chunkCount <= 0) {
-        throw new Error("La sauvegarde cloud est vide.");
-    }
+    const data =
+        collectionSnapshot.data();
 
-    let compressedBase64 = "";
-    for (let index = 0; index < chunkCount; index++) {
-        const chunkId = String(index).padStart(4, "0");
-        const chunkReference = doc(db, "privateSync", uid, "chunks", chunkId);
-        const chunkSnapshot = await getDoc(chunkReference);
+    console.log(
+        "Collection Firestore actuelle :",
+        data
+    );
 
-        if (!chunkSnapshot.exists()) {
-            throw new Error(`Morceau de sauvegarde absent (${chunkId}).`);
-        }
-
-        compressedBase64 += chunkSnapshot.data().data || "";
-    }
-
-    const json = await gunzipBase64(compressedBase64);
-    return JSON.parse(json);
+    return data;
 }
 
-// 3. Gunzip Base64 Helper
-async function gunzipBase64(base64) {
-    const binary = atob(base64);
-    const bytes = new Uint8Array(binary.length);
-    for (let i = 0; i < binary.length; i++) {
-        bytes[i] = binary.charCodeAt(i);
-    }
-
-    const stream = new Blob([bytes])
-        .stream()
-        .pipeThrough(new DecompressionStream("gzip"));
-
-    return await new Response(stream).text();
-}
 
 function parseStoredArray(value) {
 
@@ -161,42 +148,45 @@ function processCollectionData(data) {
         data
     );
 
-    /*
-     * Le snapshot Android stocke les données
-     * dans l'objet "values".
-     */
-    const values =
-        data &&
-        data.values &&
-        typeof data.values === "object"
-            ? data.values
-            : data;
-
-    console.log(
-        "Valeurs Arcade Relics :",
-        values
-    );
-
     const items =
-        parseStoredArray(
-            values.otr_items
-        );
+        Array.isArray(data.items)
+            ? data.items
+            : [];
 
     const owned =
-        parseStoredArray(
-            values.otr_owned
-        );
+        Array.isArray(data.owned)
+            ? data.owned
+            : [];
 
     const wishlist =
-        parseStoredArray(
-            values.otr_wishlist
-        );
+        Array.isArray(data.wishlist)
+            ? data.wishlist
+            : [];
 
     const consoles =
-        parseStoredArray(
-            values.otr_user_consoles
-        );
+        Array.isArray(data.consoles)
+            ? data.consoles
+            : [];
 
+    console.log(
+        "Items :",
+        items
+    );
+
+    console.log(
+        "Jeux possédés IDs :",
+        owned
+    );
+
+    console.log(
+        "Wishlist IDs :",
+        wishlist
+    );
+
+    console.log(
+        "Consoles :",
+        consoles
+    );
     console.log(
         "Items :",
         items
