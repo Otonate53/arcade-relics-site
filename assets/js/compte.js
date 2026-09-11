@@ -480,10 +480,19 @@ const logoutBtn = document.getElementById("logoutBtn");
 const tabGames = document.getElementById("tabGames");
 const tabConsoles = document.getElementById("tabConsoles");
 const tabWishlist = document.getElementById("tabWishlist");
+const tabProfile = document.getElementById("tabProfile");
 const badgeGames = document.getElementById("badgeGames");
 const badgeConsoles = document.getElementById("badgeConsoles");
 const badgeWishlist = document.getElementById("badgeWishlist");
 const collectionSearch = document.getElementById("collectionSearch");
+const searchBoxWrap = document.getElementById("searchBoxWrap");
+
+// Profile Elements
+const profileContent = document.getElementById("profileContent");
+const profileEmail = document.getElementById("profileEmail");
+const finishedCount = document.getElementById("finishedCount");
+const backlogCount = document.getElementById("backlogCount");
+const profileLogoutBtn = document.getElementById("profileLogoutBtn");
 
 // Modal Elements
 const itemModalOverlay = document.getElementById("itemModalOverlay");
@@ -499,7 +508,7 @@ let parsedData = {
     finishedIds: new Set(),
     backlogIds: new Set()
 };
-let currentTab = "games"; // "games" | "consoles" | "wishlist"
+let currentTab = "games"; // "games" | "consoles" | "wishlist" | "profile"
 
 // 1. Listen for Authentication
 onAuthStateChanged(auth, async (user) => {
@@ -510,6 +519,9 @@ onAuthStateChanged(auth, async (user) => {
 
     if (userEmail) {
         userEmail.textContent = user.email || "Compte Google";
+    }
+    if (profileEmail) {
+        profileEmail.textContent = user.email || "Compte Google";
     }
 
     try {
@@ -747,6 +759,16 @@ function processCollectionData(data) {
     if (wishlistCount) {
         wishlistCount.textContent =
             parsedData.wishlistGames.length;
+    }
+
+    if (finishedCount) {
+        finishedCount.textContent =
+            parsedData.finishedIds.size;
+    }
+
+    if (backlogCount) {
+        backlogCount.textContent =
+            parsedData.backlogIds.size;
     }
 
     // Badges des onglets
@@ -1279,6 +1301,17 @@ function openGameDetails(game, isWishlist = false) {
 
 // 5. Render Current View
 function renderCurrentView() {
+    if (currentTab === "profile") {
+        if (collectionList) collectionList.style.display = "none";
+        if (emptyTabState) emptyTabState.style.display = "none";
+        if (searchBoxWrap) searchBoxWrap.style.display = "none";
+        if (profileContent) profileContent.style.display = "block";
+        return;
+    }
+
+    if (profileContent) profileContent.style.display = "none";
+    if (searchBoxWrap) searchBoxWrap.style.display = "flex";
+
     if (!collectionList) return;
     collectionList.innerHTML = "";
 
@@ -1426,13 +1459,14 @@ function escapeHtml(str) {
 function switchTab(tabName) {
     currentTab = tabName;
 
-    [tabGames, tabConsoles, tabWishlist].forEach(btn => {
+    [tabGames, tabConsoles, tabWishlist, tabProfile].forEach(btn => {
         if (btn) btn.classList.remove("active");
     });
 
     if (tabName === "games" && tabGames) tabGames.classList.add("active");
     if (tabName === "consoles" && tabConsoles) tabConsoles.classList.add("active");
     if (tabName === "wishlist" && tabWishlist) tabWishlist.classList.add("active");
+    if (tabName === "profile" && tabProfile) tabProfile.classList.add("active");
 
     renderCurrentView();
 }
@@ -1440,6 +1474,19 @@ function switchTab(tabName) {
 if (tabGames) tabGames.addEventListener("click", () => switchTab("games"));
 if (tabConsoles) tabConsoles.addEventListener("click", () => switchTab("consoles"));
 if (tabWishlist) tabWishlist.addEventListener("click", () => switchTab("wishlist"));
+if (tabProfile) tabProfile.addEventListener("click", () => switchTab("profile"));
+
+if (profileLogoutBtn) {
+    profileLogoutBtn.addEventListener("click", async () => {
+        try {
+            await signOut(auth);
+            window.location.href = "index.html";
+        } catch (e) {
+            console.error("Erreur déconnexion :", e);
+            window.location.href = "index.html";
+        }
+    });
+}
 
 // Real-time Search Filter
 if (collectionSearch) {
