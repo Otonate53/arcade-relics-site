@@ -754,27 +754,111 @@ async function loadGoogleDriveImages() {
     const spineImages =
         new Map();
 
-    /*
-     * Fonctions d'aide pour retrouver un fichier dans le ZIP
-     */
     function extractItemSpineRef(item) {
-        if (!item) return "";
-        if (typeof item.spineImage === "string" && item.spineImage.trim()) return item.spineImage.trim();
-        if (typeof item.spineUrl === "string" && item.spineUrl.trim()) return item.spineUrl.trim();
-        if (typeof item.spine === "string" && item.spine.trim()) return item.spine.trim();
-        if (typeof item.tranche === "string" && item.tranche.trim()) return item.tranche.trim();
-        if (typeof item.trancheImage === "string" && item.trancheImage.trim()) return item.trancheImage.trim();
-        if (typeof item.photo_tranche === "string" && item.photo_tranche.trim()) return item.photo_tranche.trim();
 
-        // Dans l'app : images[0] = face avant, images[1] = tranche, images[2] = face arrière
-        const list = Array.isArray(item.images) ? item.images : (Array.isArray(item.photos) ? item.photos : []);
+        if (!item) {
+            return "";
+        }
+
+        const list =
+            Array.isArray(item.images)
+                ? item.images
+                : (
+                    Array.isArray(item.photos)
+                        ? item.photos
+                        : []
+                );
+
+
+        /*
+         * PRIORITÉ :
+         * chercher l'image "_2".
+         *
+         * Backup Arcade Relics :
+         * _1 = avant
+         * _2 = tranche
+         * _3 = arrière
+         */
+        const numberedSpine =
+            list.find(
+                image => {
+
+                    if (
+                        typeof image !== "string"
+                    ) {
+                        return false;
+                    }
+
+                    return /_2\.(webp|png|jpe?g|gif)$/i
+                        .test(image);
+                }
+            );
+
+        if (numberedSpine) {
+            return numberedSpine;
+        }
+
+
+        /*
+         * L'application stocke aussi
+         * normalement la tranche à images[1].
+         */
         if (list.length >= 3) {
-            const candidate = list[1];
-            if (typeof candidate === "string" && candidate.trim()) return candidate.trim();
-            if (candidate && typeof candidate === "object") {
-                return candidate.path || candidate.uri || candidate.url || candidate.file || candidate.src || "";
+
+            const candidate =
+                list[1];
+
+            if (
+                typeof candidate === "string" &&
+                candidate.trim()
+            ) {
+                return candidate.trim();
+            }
+
+            if (
+                candidate &&
+                typeof candidate === "object"
+            ) {
+
+                return (
+                    candidate.path ||
+                    candidate.uri ||
+                    candidate.url ||
+                    candidate.file ||
+                    candidate.src ||
+                    ""
+                );
             }
         }
+
+
+        /*
+         * Anciens formats / compatibilité.
+         */
+        const directCandidates = [
+            item.spineImage,
+            item.spineUrl,
+            item.spine,
+            item.tranche,
+            item.trancheImage,
+            item.photo_tranche
+        ];
+
+
+        for (
+            const candidate
+            of directCandidates
+        ) {
+
+            if (
+                typeof candidate === "string" &&
+                candidate.trim()
+            ) {
+                return candidate.trim();
+            }
+        }
+
+
         return "";
     }
 
@@ -825,7 +909,9 @@ async function loadGoogleDriveImages() {
          * Exemples : images/games/123_spine.webp, images/games/123_tranche.webp, images/games/123_1.webp, images/spines/123.webp
          */
         let spineMatch =
-            path.match(/^images\/games\/(.+?)_(?:spine|tranche|edge|side)\.(webp|png|jpe?g|gif)$/i) ||
+            path.match(
+                /^images\/games\/(.+?)_(?:spine|tranche|edge|side|2)\.(webp|png|jpe?g|gif)$/i
+            ) ||
             path.match(/^images\/wishlist\/(.+?)_(?:spine|tranche|edge|side)\.(webp|png|jpe?g|gif)$/i) ||
             path.match(/^images\/(?:spines?|tranches?)\/(.+?)(?:_cover|_spine|_tranche|_1)?\.(webp|png|jpe?g|gif)$/i) ||
             path.match(/^(?:spines?|tranches?)\/(.+?)\.(webp|png|jpe?g|gif)$/i);
