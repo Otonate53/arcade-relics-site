@@ -2597,30 +2597,61 @@ function renderShelfView(itemsToRender) {
 
     const sortedGames = itemsWithMeta.map(item => item.game);
 
+    // Calculer la largeur disponible pour partitionner les jeux sur plusieurs étagères (rendu meuble bibliothèque)
+    const containerWidth = collectionList ? collectionList.clientWidth : window.innerWidth;
+    // Déduction des piliers latéraux (2 x 22px) et des marges intérieures (2 x 14px)
+    const availableWidth = Math.max(260, containerWidth - 76);
+
+    const shelves = [];
+    let currentShelf = [];
+    let currentWidth = 0;
+
+    sortedGames.forEach(game => {
+        // Largeur estimée d'une tranche avec espace (gap: 4px)
+        const spineWidth = game.driveSpineImage ? 46 : 40;
+        if (currentShelf.length > 0 && currentWidth + spineWidth > availableWidth) {
+            shelves.push(currentShelf);
+            currentShelf = [game];
+            currentWidth = spineWidth;
+        } else {
+            currentShelf.push(game);
+            currentWidth += spineWidth;
+        }
+    });
+
+    if (currentShelf.length > 0) {
+        shelves.push(currentShelf);
+    }
+
     const isWishlist = currentTab === "wishlist";
-    const shelfTitle = isWishlist ? "⭐ Étagère Wishlist" : "📚 Étagère de collection";
+    const shelfTitle = isWishlist ? "Étagère Wishlist" : "Bibliothèque de Collection";
 
-    const shelfSection = document.createElement("div");
-    shelfSection.className = "shelf-section";
+    // Structure complète du Meuble Bibliothèque
+    const cabinet = document.createElement("div");
+    cabinet.className = "bookcase-cabinet";
 
-    const shelfHeader = document.createElement("div");
-    shelfHeader.className = "shelf-header";
-    shelfHeader.innerHTML = `
-        <div class="shelf-title-wrap">
-            <h3 class="shelf-title">
-                <span>${escapeHtml(shelfTitle)}</span>
-                <span class="shelf-count-badge">${sortedGames.length} ${sortedGames.length > 1 ? "jeux" : "jeu"}</span>
-            </h3>
-        </div>
-        <div class="shelf-sort-wrap">
-            <button type="button" class="shelf-sort-btn" id="shelfSortToggleBtn" title="Inverser le tri par date d'ajout">
-                <span class="shelf-sort-icon">${shelfSortOrder === "desc" ? "⬇️" : "⬆️"}</span>
-                <span class="shelf-sort-text">${shelfSortOrder === "desc" ? "Du plus récent au plus ancien" : "Du plus ancien au plus récent"}</span>
-            </button>
+    // 1. Sommet sculpté (Corniche)
+    const crown = document.createElement("div");
+    crown.className = "bookcase-top-crown";
+    crown.innerHTML = `
+        <div class="bookcase-crown-face">
+            <div class="bookcase-header-left">
+                <span class="bookcase-ornament">🏛️</span>
+                <div>
+                    <h3 class="bookcase-main-title">${escapeHtml(shelfTitle)}</h3>
+                    <span class="bookcase-subtitle">${sortedGames.length} ${sortedGames.length > 1 ? "jeux" : "jeu"} • ${shelves.length} ${shelves.length > 1 ? "étagères" : "étagère"}</span>
+                </div>
+            </div>
+            <div class="shelf-sort-wrap">
+                <button type="button" class="shelf-sort-btn" id="shelfSortToggleBtn" title="Inverser le tri par date d'ajout">
+                    <span class="shelf-sort-icon">${shelfSortOrder === "desc" ? "⬇️" : "⬆️"}</span>
+                    <span class="shelf-sort-text">${shelfSortOrder === "desc" ? "Du plus récent au plus ancien" : "Du plus ancien au plus récent"}</span>
+                </button>
+            </div>
         </div>
     `;
 
-    const sortBtn = shelfHeader.querySelector("#shelfSortToggleBtn");
+    const sortBtn = crown.querySelector("#shelfSortToggleBtn");
     if (sortBtn) {
         sortBtn.addEventListener("click", () => {
             shelfSortOrder = shelfSortOrder === "desc" ? "asc" : "desc";
@@ -2633,37 +2664,72 @@ function renderShelfView(itemsToRender) {
         });
     }
 
-    const shelfBoard = document.createElement("div");
-    shelfBoard.className = "shelf-board";
+    // 2. Intérieur avec montants verticaux et empilement des étagères
+    const interior = document.createElement("div");
+    interior.className = "bookcase-interior";
 
-    const booksRow = document.createElement("div");
-    booksRow.className = "shelf-books-row";
+    const leftPillar = document.createElement("div");
+    leftPillar.className = "bookcase-pillar bookcase-pillar-left";
 
-    // Permet le défilement horizontal fluide à la molette sur l'étagère
-    booksRow.addEventListener("wheel", (e) => {
-        if (e.deltaY !== 0 && booksRow.scrollWidth > booksRow.clientWidth) {
-            e.preventDefault();
-            booksRow.scrollLeft += e.deltaY;
-        }
-    }, { passive: false });
+    const shelvesStack = document.createElement("div");
+    shelvesStack.className = "bookcase-shelves-stack";
 
-    sortedGames.forEach(game => {
-        const platformName = getPlatformDisplayName(game) || "Jeu";
-        const spine = createGameSpineElement(game, platformName);
-        booksRow.appendChild(spine);
+    shelves.forEach((shelfGames, index) => {
+        const tier = document.createElement("div");
+        tier.className = "bookcase-tier";
+        tier.setAttribute("data-tier", String(index + 1));
+
+        const spinesRow = document.createElement("div");
+        spinesRow.className = "bookcase-spines-row";
+
+        shelfGames.forEach(game => {
+            const platformName = getPlatformDisplayName(game) || "Jeu";
+            const spine = createGameSpineElement(game, platformName);
+            spinesRow.appendChild(spine);
+        });
+
+        const plank = document.createElement("div");
+        plank.className = "bookcase-plank";
+
+        const shadowDrop = document.createElement("div");
+        shadowDrop.className = "plank-shadow-drop";
+        plank.appendChild(shadowDrop);
+
+        tier.appendChild(spinesRow);
+        tier.appendChild(plank);
+
+        shelvesStack.appendChild(tier);
     });
 
-    const plank = document.createElement("div");
-    plank.className = "shelf-plank";
+    const rightPillar = document.createElement("div");
+    rightPillar.className = "bookcase-pillar bookcase-pillar-right";
 
-    shelfBoard.appendChild(booksRow);
-    shelfBoard.appendChild(plank);
+    interior.appendChild(leftPillar);
+    interior.appendChild(shelvesStack);
+    interior.appendChild(rightPillar);
 
-    shelfSection.appendChild(shelfHeader);
-    shelfSection.appendChild(shelfBoard);
+    // 3. Socle inférieur du meuble
+    const plinth = document.createElement("div");
+    plinth.className = "bookcase-base-plinth";
 
-    collectionList.appendChild(shelfSection);
+    cabinet.appendChild(crown);
+    cabinet.appendChild(interior);
+    cabinet.appendChild(plinth);
+
+    collectionList.appendChild(cabinet);
 }
+
+// Re-calcul automatique sur redimensionnement pour recalculer le nombre de tranches par étagère
+let shelfResizeDebounce = null;
+window.addEventListener("resize", () => {
+    if (currentViewMode !== "shelf") return;
+    clearTimeout(shelfResizeDebounce);
+    shelfResizeDebounce = setTimeout(() => {
+        if (currentViewMode === "shelf") {
+            renderCurrentView();
+        }
+    }, 150);
+});
 
 // View Mode Handler
 function setViewMode(mode) {
