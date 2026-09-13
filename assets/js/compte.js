@@ -2422,7 +2422,7 @@ function createGameSpineElement(game, platformName) {
                         naturalHeight;
 
                     const targetHeight =
-                        220;
+                        280;
 
                     const calculatedWidth =
                         Math.round(
@@ -2432,15 +2432,14 @@ function createGameSpineElement(game, platformName) {
 
 
                     /*
-                     * Limites pour éviter
-                     * une tranche trop fine
-                     * ou énormément trop large.
+                     * Limites pour agrandir les tranches
+                     * et les rendre parfaitement lisibles.
                      */
                     const finalWidth =
                         Math.max(
-                            24,
+                            38,
                             Math.min(
-                                120,
+                                140,
                                 calculatedWidth
                             )
                         );
@@ -2469,7 +2468,10 @@ function createGameSpineElement(game, platformName) {
 
                 realSpineImage.addEventListener(
                     "load",
-                    applyRealSpine,
+                    () => {
+                        applyRealSpine();
+                        scheduleShelfRepack();
+                    },
                     {
                         once: true
                     }
@@ -2597,32 +2599,6 @@ function renderShelfView(itemsToRender) {
 
     const sortedGames = itemsWithMeta.map(item => item.game);
 
-    // Calculer la largeur disponible pour partitionner les jeux sur plusieurs étagères (rendu meuble bibliothèque)
-    const containerWidth = collectionList ? collectionList.clientWidth : window.innerWidth;
-    // Déduction des piliers latéraux (2 x 22px) et des marges intérieures (2 x 14px)
-    const availableWidth = Math.max(260, containerWidth - 76);
-
-    const shelves = [];
-    let currentShelf = [];
-    let currentWidth = 0;
-
-    sortedGames.forEach(game => {
-        // Largeur estimée d'une tranche avec espace (gap: 4px)
-        const spineWidth = game.driveSpineImage ? 46 : 40;
-        if (currentShelf.length > 0 && currentWidth + spineWidth > availableWidth) {
-            shelves.push(currentShelf);
-            currentShelf = [game];
-            currentWidth = spineWidth;
-        } else {
-            currentShelf.push(game);
-            currentWidth += spineWidth;
-        }
-    });
-
-    if (currentShelf.length > 0) {
-        shelves.push(currentShelf);
-    }
-
     const isWishlist = currentTab === "wishlist";
     const shelfTitle = isWishlist ? "Étagère Wishlist" : "Bibliothèque de Collection";
 
@@ -2639,7 +2615,7 @@ function renderShelfView(itemsToRender) {
                 <span class="bookcase-ornament">🏛️</span>
                 <div>
                     <h3 class="bookcase-main-title">${escapeHtml(shelfTitle)}</h3>
-                    <span class="bookcase-subtitle">${sortedGames.length} ${sortedGames.length > 1 ? "jeux" : "jeu"} • ${shelves.length} ${shelves.length > 1 ? "étagères" : "étagère"}</span>
+                    <span class="bookcase-subtitle" id="bookcaseStatsSubtitle">${sortedGames.length} ${sortedGames.length > 1 ? "jeux" : "jeu"}</span>
                 </div>
             </div>
             <div class="shelf-sort-wrap">
@@ -2674,33 +2650,6 @@ function renderShelfView(itemsToRender) {
     const shelvesStack = document.createElement("div");
     shelvesStack.className = "bookcase-shelves-stack";
 
-    shelves.forEach((shelfGames, index) => {
-        const tier = document.createElement("div");
-        tier.className = "bookcase-tier";
-        tier.setAttribute("data-tier", String(index + 1));
-
-        const spinesRow = document.createElement("div");
-        spinesRow.className = "bookcase-spines-row";
-
-        shelfGames.forEach(game => {
-            const platformName = getPlatformDisplayName(game) || "Jeu";
-            const spine = createGameSpineElement(game, platformName);
-            spinesRow.appendChild(spine);
-        });
-
-        const plank = document.createElement("div");
-        plank.className = "bookcase-plank";
-
-        const shadowDrop = document.createElement("div");
-        shadowDrop.className = "plank-shadow-drop";
-        plank.appendChild(shadowDrop);
-
-        tier.appendChild(spinesRow);
-        tier.appendChild(plank);
-
-        shelvesStack.appendChild(tier);
-    });
-
     const rightPillar = document.createElement("div");
     rightPillar.className = "bookcase-pillar bookcase-pillar-right";
 
@@ -2716,10 +2665,95 @@ function renderShelfView(itemsToRender) {
     cabinet.appendChild(interior);
     cabinet.appendChild(plinth);
 
+    // Insérer le meuble dans le DOM pour calculer la largeur physique exacte de l'étagère
     collectionList.appendChild(cabinet);
+
+    // Créer tous les éléments de tranches avec leur taille agrandie
+    const spineItems = sortedGames.map(game => {
+        const platformName = getPlatformDisplayName(game) || "Jeu";
+        const spine = createGameSpineElement(game, platformName);
+        return { game, spine };
+    });
+
+    // Mesurer précisément la largeur réelle disponible entre les deux montants en bois
+    const stackWidth = shelvesStack.clientWidth;
+    const innerWidth = stackWidth > 0 
+        ? stackWidth - 28 // 28px de padding (14px gauche + 14px droite)
+        : Math.max(280, (collectionList.clientWidth || window.innerWidth) - 84);
+
+    const shelves = [];
+    let currentShelf = [];
+    let currentWidth = 0;
+    const gap = 4;
+
+    spineItems.forEach(({ spine }) => {
+        // Largeur réelle de la tranche
+        let w = parseFloat(spine.style.width);
+        if (!w || isNaN(w)) {
+            w = 44; // largeur par défaut agrandie
+        }
+
+        // On remplit l'étagère jusqu'au bout réel de la planche
+        if (currentShelf.length > 0 && (currentWidth + w) > innerWidth) {
+            shelves.push(currentShelf);
+            currentShelf = [spine];
+            currentWidth = w + gap;
+        } else {
+            currentShelf.push(spine);
+            currentWidth += w + gap;
+        }
+    });
+
+    if (currentShelf.length > 0) {
+        shelves.push(currentShelf);
+    }
+
+    // Mettre à jour le sous-titre avec le nombre d'étagères créées
+    const statsSubtitle = crown.querySelector("#bookcaseStatsSubtitle");
+    if (statsSubtitle) {
+        statsSubtitle.textContent = `${sortedGames.length} ${sortedGames.length > 1 ? "jeux" : "jeu"} • ${shelves.length} ${shelves.length > 1 ? "étagères" : "étagère"}`;
+    }
+
+    // Rendre chaque étage d'étagère
+    shelves.forEach((shelfSpines, index) => {
+        const tier = document.createElement("div");
+        tier.className = "bookcase-tier";
+        tier.setAttribute("data-tier", String(index + 1));
+
+        const spinesRow = document.createElement("div");
+        spinesRow.className = "bookcase-spines-row";
+
+        shelfSpines.forEach(spine => {
+            spinesRow.appendChild(spine);
+        });
+
+        const plank = document.createElement("div");
+        plank.className = "bookcase-plank";
+
+        const shadowDrop = document.createElement("div");
+        shadowDrop.className = "plank-shadow-drop";
+        plank.appendChild(shadowDrop);
+
+        tier.appendChild(spinesRow);
+        tier.appendChild(plank);
+
+        shelvesStack.appendChild(tier);
+    });
 }
 
-// Re-calcul automatique sur redimensionnement pour recalculer le nombre de tranches par étagère
+// Re-calcul automatique lors du chargement asynchrone des photos
+let shelfRepackTimer = null;
+function scheduleShelfRepack() {
+    if (currentViewMode !== "shelf") return;
+    clearTimeout(shelfRepackTimer);
+    shelfRepackTimer = setTimeout(() => {
+        if (currentViewMode === "shelf") {
+            renderCurrentView();
+        }
+    }, 100);
+}
+
+// Re-calcul automatique sur redimensionnement
 let shelfResizeDebounce = null;
 window.addEventListener("resize", () => {
     if (currentViewMode !== "shelf") return;
