@@ -209,8 +209,6 @@ function applyEnrichedData(
             const img = gameImages.get(id) || wishlistImages.get(id) || extra.image || game.driveImage || "";
             const spineImg =
                 (spineImages && spineImages.get(id)) ||
-                getGameSpineUrl(extra) ||
-                getGameSpineUrl(game) ||
                 "";
 
             return {
@@ -229,8 +227,6 @@ function applyEnrichedData(
             const img = wishlistImages.get(id) || gameImages.get(id) || extra.image || game.driveImage || "";
             const spineImg =
                 (spineImages && spineImages.get(id)) ||
-                getGameSpineUrl(extra) ||
-                getGameSpineUrl(game) ||
                 "";
             return {
                 ...extra,
@@ -2037,83 +2033,175 @@ function getSpineShortTag(platformName) {
 }
 
 function createGameSpineElement(game, platformName) {
-    const spine = document.createElement("div");
-    const themeClass = getSpineThemeClass(platformName);
-    const shortTag = getSpineShortTag(platformName);
-    spine.className = `game-spine ${themeClass}`;
 
-    const title = game.title || game.name || "Jeu sans titre";
-    const coverUrl = getGameCoverUrl(game);
-    const spinePhotoUrl = getGameSpineUrl(game);
+    const spine =
+        document.createElement("div");
 
-    if (spinePhotoUrl) {
-        spine.classList.add(
-            "has-real-spine"
-        );
-    }
+    const themeClass =
+        getSpineThemeClass(platformName);
 
-    const isWishlist = currentTab === "wishlist";
-    const statusColor = isWishlist ? "var(--yellow)" : "var(--green)";
+    const shortTag =
+        getSpineShortTag(platformName);
 
-    const condition = game.condition || game.etat || "";
-    const conditionLabel = condition ? escapeHtml(String(condition)) : "";
+    spine.className =
+        `game-spine ${themeClass}`;
 
-    const previewCoverHtml = coverUrl
-        ? `<img src="${escapeHtml(coverUrl)}" alt="${escapeHtml(title)}" class="spine-preview-cover" loading="lazy">`
-        : `<div class="spine-preview-fallback"><span>🎮</span></div>`;
 
-    spine.innerHTML = `
-       ${spinePhotoUrl
+    const title =
+        game.title ||
+        game.name ||
+        "Jeu sans titre";
+
+    const coverUrl =
+        getGameCoverUrl(game);
+
+    /*
+     * On utilise UNIQUEMENT l'image
+     * réellement extraite de Google Drive.
+     */
+    const spinePhotoUrl =
+        game.driveSpineImage ||
+        "";
+
+    const isWishlist =
+        currentTab === "wishlist";
+
+    const statusColor =
+        isWishlist
+            ? "var(--yellow)"
+            : "var(--green)";
+
+
+    const condition =
+        game.condition ||
+        game.etat ||
+        "";
+
+    const conditionLabel =
+        condition
+            ? escapeHtml(
+                String(condition)
+            )
+            : "";
+
+
+    const previewCoverHtml =
+        coverUrl
             ? `
-        <img
-            src="${escapeHtml(spinePhotoUrl)}"
-            alt="Tranche de ${escapeHtml(title)}"
-            class="spine-real-photo"
-            loading="lazy"
-            onerror="this.style.display='none';"
-        >
-      `
+                <img
+                    src="${escapeHtml(coverUrl)}"
+                    alt="${escapeHtml(title)}"
+                    class="spine-preview-cover"
+                    loading="lazy"
+                >
+              `
             : `
-        <div class="spine-top">
-            <span
-                class="spine-logo-tag"
-                title="${escapeHtml(platformName)}"
-            >
-                ${escapeHtml(shortTag)}
-            </span>
+                <div class="spine-preview-fallback">
+                    <span>🎮</span>
+                </div>
+              `;
+
+
+    /*
+     * La fausse tranche est TOUJOURS créée.
+     * Si la vraie photo fonctionne,
+     * elle vient se placer par-dessus.
+     */
+    spine.innerHTML = `
+
+        <div class="spine-fallback-content">
+
+            <div class="spine-top">
+
+                <span
+                    class="spine-logo-tag"
+                    title="${escapeHtml(platformName)}"
+                >
+                    ${escapeHtml(shortTag)}
+                </span>
+
+            </div>
+
+
+            <div class="spine-title-wrap">
+
+                <span
+                    class="spine-title"
+                    title="${escapeHtml(title)}"
+                >
+                    ${escapeHtml(title)}
+                </span>
+
+            </div>
+
+
+            <div class="spine-bottom">
+
+                <span
+                    class="spine-status-indicator"
+                    style="color:${statusColor};"
+                ></span>
+
+            </div>
+
         </div>
 
-        <div class="spine-title-wrap">
-            <span
-                class="spine-title"
-                title="${escapeHtml(title)}"
-            >
-                ${escapeHtml(title)}
-            </span>
-        </div>
 
-        <div class="spine-bottom">
-            <span
-                class="spine-status-indicator"
-                style="color:${statusColor};"
-            ></span>
-        </div>
-      `
+        ${spinePhotoUrl
+            ? `
+                    <img
+                        src="${escapeHtml(spinePhotoUrl)}"
+                        alt="Tranche de ${escapeHtml(title)}"
+                        class="spine-real-photo"
+                        loading="lazy"
+                    >
+                  `
+            : ""
         }
 
-        <!-- Floating Preview Tooltip Card -->
-        <div class="spine-preview-card" aria-hidden="true">
+
+        <div
+            class="spine-preview-card"
+            aria-hidden="true"
+        >
+
             ${previewCoverHtml}
+
             <div class="spine-preview-info">
-                <div class="spine-preview-title">${escapeHtml(title)}</div>
-                <div class="spine-preview-meta">
-                    <span style="color: var(--cyan); font-weight: 600;">${escapeHtml(platformName)}</span>
-                    ${conditionLabel ? `<span>${conditionLabel}</span>` : ""}
+
+                <div class="spine-preview-title">
+                    ${escapeHtml(title)}
                 </div>
+
+                <div class="spine-preview-meta">
+
+                    <span
+                        style="
+                            color:var(--cyan);
+                            font-weight:600;
+                        "
+                    >
+                        ${escapeHtml(platformName)}
+                    </span>
+
+                    ${conditionLabel
+            ? `<span>${conditionLabel}</span>`
+            : ""
+        }
+
+                </div>
+
             </div>
+
         </div>
     `;
 
+
+    /*
+     * Si on possède une vraie tranche :
+     * - vérifier qu'elle fonctionne
+     * - adapter la largeur à son ratio
+     */
     if (spinePhotoUrl) {
 
         const realSpineImage =
@@ -2121,10 +2209,10 @@ function createGameSpineElement(game, platformName) {
                 ".spine-real-photo"
             );
 
+
         if (realSpineImage) {
 
-            realSpineImage.addEventListener(
-                "load",
+            const applyRealSpine =
                 () => {
 
                     const naturalWidth =
@@ -2142,14 +2230,22 @@ function createGameSpineElement(game, platformName) {
                     }
 
 
+                    /*
+                     * Maintenant seulement,
+                     * on sait que la vraie photo
+                     * fonctionne.
+                     */
+                    spine.classList.add(
+                        "has-real-spine"
+                    );
+
+
                     const ratio =
                         naturalWidth /
                         naturalHeight;
 
-
                     const targetHeight =
                         220;
-
 
                     const calculatedWidth =
                         Math.round(
@@ -2159,8 +2255,9 @@ function createGameSpineElement(game, platformName) {
 
 
                     /*
-                     * On adapte la largeur
-                     * de la tranche à la photo.
+                     * Limites pour éviter
+                     * une tranche trop fine
+                     * ou énormément trop large.
                      */
                     const finalWidth =
                         Math.max(
@@ -2177,25 +2274,116 @@ function createGameSpineElement(game, platformName) {
 
                     spine.style.minWidth =
                         `${finalWidth}px`;
+                };
 
+
+            /*
+             * Image déjà chargée depuis
+             * le cache navigateur.
+             */
+            if (
+                realSpineImage.complete &&
+                realSpineImage.naturalWidth > 0
+            ) {
+
+                applyRealSpine();
+
+            } else {
+
+                realSpineImage.addEventListener(
+                    "load",
+                    applyRealSpine,
+                    {
+                        once: true
+                    }
+                );
+            }
+
+
+            /*
+             * C'EST ICI que va le code
+             * "error" que tu me demandais.
+             *
+             * Si la vraie photo ne fonctionne pas,
+             * on la supprime et la fausse tranche
+             * reste visible.
+             */
+            realSpineImage.addEventListener(
+                "error",
+                () => {
+
+                    spine.classList.remove(
+                        "has-real-spine"
+                    );
+
+                    realSpineImage.remove();
+
+                    spine.style.width =
+                        "";
+
+                    spine.style.minWidth =
+                        "";
+
+                },
+                {
+                    once: true
                 }
             );
+
         }
+
     }
 
-    spine.setAttribute("role", "button");
-    spine.setAttribute("tabindex", "0");
-    spine.setAttribute("aria-label", `Voir les détails du jeu ${title}`);
 
-    spine.addEventListener("click", () => {
-        openGameDetails(game, currentTab === "wishlist");
-    });
-    spine.addEventListener("keydown", (e) => {
-        if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            openGameDetails(game, currentTab === "wishlist");
+    spine.setAttribute(
+        "role",
+        "button"
+    );
+
+    spine.setAttribute(
+        "tabindex",
+        "0"
+    );
+
+    spine.setAttribute(
+        "aria-label",
+        `Voir les détails du jeu ${title}`
+    );
+
+
+    spine.addEventListener(
+        "click",
+        () => {
+
+            openGameDetails(
+                game,
+                currentTab === "wishlist"
+            );
+
         }
-    });
+    );
+
+
+    spine.addEventListener(
+        "keydown",
+        (event) => {
+
+            if (
+                event.key === "Enter" ||
+                event.key === " "
+            ) {
+
+                event.preventDefault();
+
+                openGameDetails(
+                    game,
+                    currentTab === "wishlist"
+                );
+            }
+
+        }
+    );
+
 
     return spine;
 }
