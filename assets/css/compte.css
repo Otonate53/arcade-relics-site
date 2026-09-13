@@ -1244,7 +1244,9 @@
 
 .game-spine.has-real-spine {
     padding: 0;
-    background: #080810;
+    background: transparent;
+    border: none;
+    box-shadow: 2px 0 6px rgba(0, 0, 0, 0.4);
 }
 
 .spine-fallback-content {
@@ -1257,16 +1259,6 @@
     align-items: center;
 }
 
-
-/*
- * Lorsqu'une vraie photo de tranche
- * a correctement chargé.
- */
-.game-spine.has-real-spine {
-    padding: 0;
-}
-
-
 /*
  * On masque la tranche artificielle
  * uniquement APRÈS que la vraie
@@ -1276,27 +1268,20 @@
     visibility: hidden;
 }
 
-
 /*
  * Vraie photo de tranche.
+ * object-fit: fill permet à la photo d'occuper 100% de la tranche sans bandes noires.
  */
 .spine-real-photo {
     position: absolute;
-
     inset: 0;
-
     width: 100%;
     height: 100%;
-
-    object-fit: contain;
+    object-fit: fill;
     object-position: center;
-
     display: block;
-
     border-radius: inherit;
-
     z-index: 2;
-
     pointer-events: none;
 }
 

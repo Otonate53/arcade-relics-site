@@ -2432,12 +2432,12 @@ function createGameSpineElement(game, platformName) {
 
 
                     /*
-                     * Limites pour agrandir les tranches
-                     * et les rendre parfaitement lisibles.
+                     * On adapte la largeur au ratio exact de la photo
+                     * pour éviter tout bord noir artificiel.
                      */
                     const finalWidth =
                         Math.max(
-                            38,
+                            24,
                             Math.min(
                                 140,
                                 calculatedWidth
