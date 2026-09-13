@@ -169,7 +169,7 @@ function getGameSpineUrl(game) {
 
     // Dans l'app : images[0] = face avant, images[1] = tranche, images[2] = face arrière
     const list = Array.isArray(game.images) ? game.images : (Array.isArray(game.photos) ? game.photos : []);
-    if (list.length >= 2) {
+    if (list.length >= 3) {
         const candidate = list[1];
         if (typeof candidate === "string" && candidate.trim()) return candidate.trim();
         if (candidate && typeof candidate === "object") {
@@ -772,7 +772,7 @@ async function loadGoogleDriveImages() {
 
         // Dans l'app : images[0] = face avant, images[1] = tranche, images[2] = face arrière
         const list = Array.isArray(item.images) ? item.images : (Array.isArray(item.photos) ? item.photos : []);
-        if (list.length >= 2) {
+        if (list.length >= 3) {
             const candidate = list[1];
             if (typeof candidate === "string" && candidate.trim()) return candidate.trim();
             if (candidate && typeof candidate === "object") {
@@ -829,8 +829,8 @@ async function loadGoogleDriveImages() {
          * Exemples : images/games/123_spine.webp, images/games/123_tranche.webp, images/games/123_1.webp, images/spines/123.webp
          */
         let spineMatch =
-            path.match(/^images\/games\/(.+?)_(?:spine|tranche|edge|side|1)\.(webp|png|jpe?g|gif)$/i) ||
-            path.match(/^images\/wishlist\/(.+?)_(?:spine|tranche|edge|side|1)\.(webp|png|jpe?g|gif)$/i) ||
+            path.match(/^images\/games\/(.+?)_(?:spine|tranche|edge|side)\.(webp|png|jpe?g|gif)$/i) ||
+            path.match(/^images\/wishlist\/(.+?)_(?:spine|tranche|edge|side)\.(webp|png|jpe?g|gif)$/i) ||
             path.match(/^images\/(?:spines?|tranches?)\/(.+?)(?:_cover|_spine|_tranche|_1)?\.(webp|png|jpe?g|gif)$/i) ||
             path.match(/^(?:spines?|tranches?)\/(.+?)\.(webp|png|jpe?g|gif)$/i);
 
@@ -2045,6 +2045,13 @@ function createGameSpineElement(game, platformName) {
     const title = game.title || game.name || "Jeu sans titre";
     const coverUrl = getGameCoverUrl(game);
     const spinePhotoUrl = getGameSpineUrl(game);
+
+    if (spinePhotoUrl) {
+        spine.classList.add(
+            "has-real-spine"
+        );
+    }
+
     const isWishlist = currentTab === "wishlist";
     const statusColor = isWishlist ? "var(--yellow)" : "var(--green)";
 
@@ -2106,6 +2113,75 @@ function createGameSpineElement(game, platformName) {
             </div>
         </div>
     `;
+
+    if (spinePhotoUrl) {
+
+        const realSpineImage =
+            spine.querySelector(
+                ".spine-real-photo"
+            );
+
+        if (realSpineImage) {
+
+            realSpineImage.addEventListener(
+                "load",
+                () => {
+
+                    const naturalWidth =
+                        realSpineImage.naturalWidth;
+
+                    const naturalHeight =
+                        realSpineImage.naturalHeight;
+
+
+                    if (
+                        !naturalWidth ||
+                        !naturalHeight
+                    ) {
+                        return;
+                    }
+
+
+                    const ratio =
+                        naturalWidth /
+                        naturalHeight;
+
+
+                    const targetHeight =
+                        220;
+
+
+                    const calculatedWidth =
+                        Math.round(
+                            targetHeight *
+                            ratio
+                        );
+
+
+                    /*
+                     * On adapte la largeur
+                     * de la tranche à la photo.
+                     */
+                    const finalWidth =
+                        Math.max(
+                            24,
+                            Math.min(
+                                120,
+                                calculatedWidth
+                            )
+                        );
+
+
+                    spine.style.width =
+                        `${finalWidth}px`;
+
+                    spine.style.minWidth =
+                        `${finalWidth}px`;
+
+                }
+            );
+        }
+    }
 
     spine.setAttribute("role", "button");
     spine.setAttribute("tabindex", "0");

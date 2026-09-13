@@ -1098,6 +1098,11 @@
     flex-shrink: 0;
 }
 
+.game-spine.has-real-spine {
+    padding: 0;
+    background: #080810;
+}
+
 .spine-real-photo {
     position: absolute;
     inset: 0;
@@ -1105,7 +1110,8 @@
     width: 100%;
     height: 100%;
 
-    object-fit: cover;
+    object-fit: contain;
+    object-position: center;
 
     display: block;
 
