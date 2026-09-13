@@ -2118,6 +2118,81 @@ function getSpineShortTag(platformName) {
     return (platformName || "JEU").substring(0, 4).toUpperCase();
 }
 
+let shelfSortOrder = localStorage.getItem("arcade_relics_shelf_sort_order") || "desc";
+
+function getGameAddedTimestamp(game, fallbackIndex = null) {
+    if (!game) return fallbackIndex;
+
+    const candidates = [
+        game.addedAt,
+        game.added_at,
+        game.createdAt,
+        game.created_at,
+        game.dateAjout,
+        game.date_ajout,
+        game.dateAdded,
+        game.date_added,
+        game.purchaseDate,
+        game.buyDate,
+        game.dateAchat,
+        game.date_achat,
+        game.date
+    ];
+
+    for (const raw of candidates) {
+        if (raw == null || raw === "") continue;
+        if (raw instanceof Date) {
+            const t = raw.getTime();
+            if (!isNaN(t)) return t;
+        }
+        if (typeof raw === "number" && raw > 0) {
+            return raw < 1e11 ? raw * 1000 : raw;
+        }
+        if (typeof raw === "object") {
+            if (typeof raw.toDate === "function") {
+                try {
+                    const t = raw.toDate().getTime();
+                    if (!isNaN(t)) return t;
+                } catch { }
+            }
+            if (typeof raw.seconds === "number") {
+                return raw.seconds * 1000;
+            }
+            if (typeof raw._seconds === "number") {
+                return raw._seconds * 1000;
+            }
+        }
+        if (typeof raw === "string") {
+            const str = raw.trim();
+            if (!str) continue;
+            if (/^\d+$/.test(str)) {
+                const num = Number(str);
+                if (!isNaN(num) && num > 0) {
+                    return num < 1e11 ? num * 1000 : num;
+                }
+            }
+            const parsed = Date.parse(str);
+            if (!isNaN(parsed)) return parsed;
+
+            const dmy = str.match(/^(\d{1,2})[\/\.-](\d{1,2})[\/\.-](\d{4})/);
+            if (dmy) {
+                const d = new Date(parseInt(dmy[3], 10), parseInt(dmy[2], 10) - 1, parseInt(dmy[1], 10));
+                if (!isNaN(d.getTime())) return d.getTime();
+            }
+        }
+    }
+
+    if (typeof game.id === "number" && game.id > 1e11) {
+        return game.id;
+    }
+    if (typeof game.id === "string" && /^\d{12,14}$/.test(game.id)) {
+        const num = Number(game.id);
+        if (!isNaN(num)) return num;
+    }
+
+    return fallbackIndex;
+}
+
 function createGameSpineElement(game, platformName) {
 
     const spine =
@@ -2140,6 +2215,17 @@ function createGameSpineElement(game, platformName) {
 
     const coverUrl =
         getGameCoverUrl(game);
+
+    const addedTs =
+        getGameAddedTimestamp(game, null);
+
+    let addedDateStr = "";
+    if (addedTs) {
+        try {
+            addedDateStr =
+                new Date(addedTs).toLocaleDateString("fr-FR");
+        } catch { }
+    }
 
     /*
      * On utilise UNIQUEMENT l'image
@@ -2272,6 +2358,11 @@ function createGameSpineElement(game, platformName) {
 
                     ${conditionLabel
             ? `<span>${conditionLabel}</span>`
+            : ""
+        }
+
+                    ${addedDateStr
+            ? `<span style="color:var(--text-muted);font-size:0.75rem;">📅 ${escapeHtml(addedDateStr)}</span>`
             : ""
         }
 
@@ -2478,59 +2569,100 @@ function renderShelfView(itemsToRender) {
     if (!collectionList) return;
     collectionList.className = "shelves-wrapper";
 
-    // Group items by platform
-    const groups = new Map();
-    itemsToRender.forEach(game => {
-        const platform = getPlatformDisplayName(game) || "Autres plateformes";
-        if (!groups.has(platform)) {
-            groups.set(platform, []);
+    if (!itemsToRender || itemsToRender.length === 0) return;
+
+    // Trier l'ensemble des jeux par date d'ajout
+    const itemsWithMeta = itemsToRender.map((game, index) => ({
+        game,
+        timestamp: getGameAddedTimestamp(game, null),
+        originalIndex: index
+    }));
+
+    itemsWithMeta.sort((a, b) => {
+        if (a.timestamp !== null && b.timestamp !== null) {
+            if (a.timestamp !== b.timestamp) {
+                return shelfSortOrder === "asc"
+                    ? a.timestamp - b.timestamp
+                    : b.timestamp - a.timestamp;
+            }
+        } else if (a.timestamp !== null) {
+            return shelfSortOrder === "asc" ? -1 : 1;
+        } else if (b.timestamp !== null) {
+            return shelfSortOrder === "asc" ? 1 : -1;
         }
-        groups.get(platform).push(game);
+        return shelfSortOrder === "asc"
+            ? a.originalIndex - b.originalIndex
+            : b.originalIndex - a.originalIndex;
     });
 
-    // Sort platforms alphabetically for clean library shelves
-    const sortedPlatforms = Array.from(groups.keys()).sort((a, b) => a.localeCompare(b));
+    const sortedGames = itemsWithMeta.map(item => item.game);
 
-    sortedPlatforms.forEach(platformName => {
-        const gamesOnShelf = groups.get(platformName);
-        if (!gamesOnShelf || gamesOnShelf.length === 0) return;
+    const isWishlist = currentTab === "wishlist";
+    const shelfTitle = isWishlist ? "⭐ Étagère Wishlist" : "📚 Étagère de collection";
 
-        const shelfSection = document.createElement("div");
-        shelfSection.className = "shelf-section";
+    const shelfSection = document.createElement("div");
+    shelfSection.className = "shelf-section";
 
-        const shelfHeader = document.createElement("div");
-        shelfHeader.className = "shelf-header";
-        shelfHeader.innerHTML = `
-            <div class="shelf-title-wrap">
-                <h3 class="shelf-title">
-                    <span>🎮 ${escapeHtml(platformName)}</span>
-                    <span class="shelf-count-badge">${gamesOnShelf.length} ${gamesOnShelf.length > 1 ? "jeux" : "jeu"}</span>
-                </h3>
-            </div>
-        `;
+    const shelfHeader = document.createElement("div");
+    shelfHeader.className = "shelf-header";
+    shelfHeader.innerHTML = `
+        <div class="shelf-title-wrap">
+            <h3 class="shelf-title">
+                <span>${escapeHtml(shelfTitle)}</span>
+                <span class="shelf-count-badge">${sortedGames.length} ${sortedGames.length > 1 ? "jeux" : "jeu"}</span>
+            </h3>
+        </div>
+        <div class="shelf-sort-wrap">
+            <button type="button" class="shelf-sort-btn" id="shelfSortToggleBtn" title="Inverser le tri par date d'ajout">
+                <span class="shelf-sort-icon">${shelfSortOrder === "desc" ? "⬇️" : "⬆️"}</span>
+                <span class="shelf-sort-text">${shelfSortOrder === "desc" ? "Du plus récent au plus ancien" : "Du plus ancien au plus récent"}</span>
+            </button>
+        </div>
+    `;
 
-        const shelfBoard = document.createElement("div");
-        shelfBoard.className = "shelf-board";
-
-        const booksRow = document.createElement("div");
-        booksRow.className = "shelf-books-row";
-
-        gamesOnShelf.forEach(game => {
-            const spine = createGameSpineElement(game, platformName);
-            booksRow.appendChild(spine);
+    const sortBtn = shelfHeader.querySelector("#shelfSortToggleBtn");
+    if (sortBtn) {
+        sortBtn.addEventListener("click", () => {
+            shelfSortOrder = shelfSortOrder === "desc" ? "asc" : "desc";
+            try {
+                localStorage.setItem("arcade_relics_shelf_sort_order", shelfSortOrder);
+            } catch (e) {
+                console.warn("Could not save shelf sort order:", e);
+            }
+            renderCurrentView();
         });
+    }
 
-        const plank = document.createElement("div");
-        plank.className = "shelf-plank";
+    const shelfBoard = document.createElement("div");
+    shelfBoard.className = "shelf-board";
 
-        shelfBoard.appendChild(booksRow);
-        shelfBoard.appendChild(plank);
+    const booksRow = document.createElement("div");
+    booksRow.className = "shelf-books-row";
 
-        shelfSection.appendChild(shelfHeader);
-        shelfSection.appendChild(shelfBoard);
+    // Permet le défilement horizontal fluide à la molette sur l'étagère
+    booksRow.addEventListener("wheel", (e) => {
+        if (e.deltaY !== 0 && booksRow.scrollWidth > booksRow.clientWidth) {
+            e.preventDefault();
+            booksRow.scrollLeft += e.deltaY;
+        }
+    }, { passive: false });
 
-        collectionList.appendChild(shelfSection);
+    sortedGames.forEach(game => {
+        const platformName = getPlatformDisplayName(game) || "Jeu";
+        const spine = createGameSpineElement(game, platformName);
+        booksRow.appendChild(spine);
     });
+
+    const plank = document.createElement("div");
+    plank.className = "shelf-plank";
+
+    shelfBoard.appendChild(booksRow);
+    shelfBoard.appendChild(plank);
+
+    shelfSection.appendChild(shelfHeader);
+    shelfSection.appendChild(shelfBoard);
+
+    collectionList.appendChild(shelfSection);
 }
 
 // View Mode Handler
