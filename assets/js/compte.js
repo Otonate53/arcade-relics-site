@@ -2257,11 +2257,16 @@ function createGameSpineElement(game, platformName) {
             : "";
 
 
+    const displayPreviewUrl =
+        coverUrl ||
+        spinePhotoUrl ||
+        "";
+
     const previewCoverHtml =
-        coverUrl
+        displayPreviewUrl
             ? `
                 <img
-                    src="${escapeHtml(coverUrl)}"
+                    src="${escapeHtml(displayPreviewUrl)}"
                     alt="${escapeHtml(title)}"
                     class="spine-preview-cover"
                     loading="lazy"

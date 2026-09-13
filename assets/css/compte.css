@@ -1529,7 +1529,7 @@
     bottom: calc(100% + 14px);
     left: 50%;
     transform: translateX(-50%) translateY(8px);
-    width: 200px;
+    width: 220px;
     background: rgba(12, 14, 22, 0.96);
     border: 1px solid var(--border-light);
     border-radius: var(--radius-md);
@@ -1551,6 +1551,39 @@
     transform: translateX(-50%) translateY(0);
 }
 
+/* Éviter le débordement sur les tranches situées aux extrémités de l'étagère */
+.game-spine:first-child .spine-preview-card,
+.game-spine:nth-child(2) .spine-preview-card {
+    left: 0;
+    transform: translateX(0) translateY(8px);
+}
+.game-spine:first-child:hover .spine-preview-card,
+.game-spine:nth-child(2):hover .spine-preview-card {
+    transform: translateX(0) translateY(0);
+}
+.game-spine:first-child .spine-preview-card::after,
+.game-spine:nth-child(2) .spine-preview-card::after {
+    left: 24px;
+    transform: none;
+}
+
+.game-spine:last-child .spine-preview-card,
+.game-spine:nth-last-child(2) .spine-preview-card {
+    left: auto;
+    right: 0;
+    transform: translateX(0) translateY(8px);
+}
+.game-spine:last-child:hover .spine-preview-card,
+.game-spine:nth-last-child(2):hover .spine-preview-card {
+    transform: translateX(0) translateY(0);
+}
+.game-spine:last-child .spine-preview-card::after,
+.game-spine:nth-last-child(2) .spine-preview-card::after {
+    left: auto;
+    right: 24px;
+    transform: none;
+}
+
 .spine-preview-card::after {
     content: "";
     position: absolute;
@@ -1562,17 +1595,22 @@
     border-color: rgba(12, 14, 22, 0.96) transparent transparent transparent;
 }
 
+/* La photo entière est affichée sans aucun rognage */
 .spine-preview-cover {
     width: 100%;
-    height: 130px;
+    height: auto;
+    max-height: 280px;
+    min-height: 120px;
     border-radius: var(--radius-sm);
-    object-fit: cover;
-    background: #000000;
+    object-fit: contain;
+    background: rgba(0, 0, 0, 0.6);
+    display: block;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.7);
 }
 
 .spine-preview-fallback {
     width: 100%;
-    height: 130px;
+    height: 140px;
     border-radius: var(--radius-sm);
     background: rgba(255, 255, 255, 0.04);
     display: flex;
