@@ -144,6 +144,25 @@
                             aria-label="Rechercher dans votre collection">
                     </div>
 
+                    <!-- Wishlist Type Filter (Tous / Jeux / Consoles) -->
+                    <div class="wishlist-filter-toggle" id="wishlistFilterToggle" role="group" aria-label="Filtre Wishlist" style="display: none;">
+                        <button type="button" class="wishlist-filter-btn active" id="filterWishlistAll"
+                            data-filter="all" aria-pressed="true">
+                            <span>Tous</span>
+                            <span class="filter-count" id="countWishlistAll">0</span>
+                        </button>
+                        <button type="button" class="wishlist-filter-btn" id="filterWishlistGames"
+                            data-filter="games" aria-pressed="false">
+                            <span>🎮 Jeux</span>
+                            <span class="filter-count" id="countWishlistGames">0</span>
+                        </button>
+                        <button type="button" class="wishlist-filter-btn" id="filterWishlistConsoles"
+                            data-filter="consoles" aria-pressed="false">
+                            <span>🕹️ Consoles</span>
+                            <span class="filter-count" id="countWishlistConsoles">0</span>
+                        </button>
+                    </div>
+
                     <!-- View Mode Toggle (Grille vs Étagère) -->
                     <div class="view-mode-toggle" id="viewModeToggle" role="group" aria-label="Mode d'affichage">
                         <button type="button" class="view-toggle-btn active" id="viewModeGrid"

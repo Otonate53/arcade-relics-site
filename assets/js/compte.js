@@ -223,18 +223,21 @@ function applyEnrichedData(
     if (parsedData.wishlistGames) {
         parsedData.wishlistGames = parsedData.wishlistGames.map(game => {
             const id = String(game.id);
-            const extra = manifestItemsMap.get(id) || {};
-            const img = wishlistImages.get(id) || gameImages.get(id) || extra.image || game.driveImage || "";
+            const isConsole = isConsoleItem(game) || (manifestConsolesMap && manifestConsolesMap.has(id));
+            const extra = (isConsole && manifestConsolesMap ? manifestConsolesMap.get(id) : null) || (manifestItemsMap ? manifestItemsMap.get(id) : null) || (manifestConsolesMap ? manifestConsolesMap.get(id) : null) || {};
+            const img = wishlistImages.get(id) || (isConsole ? consoleImages.get(id) : gameImages.get(id)) || consoleImages.get(id) || gameImages.get(id) || extra.image || game.driveImage || "";
             const spineImg =
                 (spineImages && spineImages.get(id)) ||
                 "";
             return {
                 ...extra,
                 ...game,
+                ...(isConsole ? { isConsole: true } : {}),
                 driveImage: img,
                 driveSpineImage: spineImg
             };
         });
+        updateWishlistFilterCounts();
     }
 
     if (parsedData.consoles) {
@@ -1079,6 +1082,11 @@ const itemModalCloseBtn = document.getElementById("itemModalCloseBtn");
 const itemModalContent = document.getElementById("itemModalContent");
 const modalAmbientAura = document.getElementById("modalAmbientAura");
 
+const wishlistFilterToggle = document.getElementById("wishlistFilterToggle");
+const filterWishlistAll = document.getElementById("filterWishlistAll");
+const filterWishlistGames = document.getElementById("filterWishlistGames");
+const filterWishlistConsoles = document.getElementById("filterWishlistConsoles");
+
 let parsedData = {
     ownedGames: [],
     consoles: [],
@@ -1087,6 +1095,49 @@ let parsedData = {
     backlogIds: new Set()
 };
 let currentTab = "games"; // "games" | "consoles" | "wishlist" | "profile"
+let wishlistFilter = "all"; // "all" | "games" | "consoles"
+
+// Helper to identify if an item is a console (vs a game)
+function isConsoleItem(item) {
+    if (!item) return false;
+    if (item.isConsole === true) return true;
+    const rawType = String(item.type || item.itemType || item.category || item.kind || "").toLowerCase();
+    if (rawType.includes("console") || rawType.includes("hardware") || rawType.includes("machine")) return true;
+    if (Array.isArray(parsedData.consoles) && parsedData.consoles.some(c => c && String(c.id) === String(item.id))) {
+        return true;
+    }
+    if ((item.brand || item.manufacturer || item.company) && !item.console && !item.platform && !item.system && !item.consoleName && !item.platformName) {
+        return true;
+    }
+    return false;
+}
+
+function updateWishlistFilterCounts() {
+    const list = parsedData.wishlistGames || [];
+    const allCount = list.length;
+    const gamesCount = list.filter(it => !isConsoleItem(it)).length;
+    const consolesCount = list.filter(it => isConsoleItem(it)).length;
+
+    const elAll = document.getElementById("countWishlistAll");
+    const elGames = document.getElementById("countWishlistGames");
+    const elConsoles = document.getElementById("countWishlistConsoles");
+
+    if (elAll) elAll.textContent = allCount;
+    if (elGames) elGames.textContent = gamesCount;
+    if (elConsoles) elConsoles.textContent = consolesCount;
+}
+
+function setWishlistFilter(filter) {
+    wishlistFilter = filter;
+    const filterBtns = [filterWishlistAll, filterWishlistGames, filterWishlistConsoles];
+    filterBtns.forEach(btn => {
+        if (!btn) return;
+        const isActive = btn.dataset.filter === filter;
+        btn.classList.toggle("active", isActive);
+        btn.setAttribute("aria-pressed", String(isActive));
+    });
+    renderCurrentView();
+}
 
 // 1. Listen for Authentication
 onAuthStateChanged(auth, async (user) => {
@@ -1341,16 +1392,43 @@ function processCollectionData(data) {
                 )
         );
 
-    parsedData.wishlistGames =
-        items.filter(
-            item =>
-                wishlistIds.has(
-                    String(item.id)
-                )
-        );
+    // Collect all wishlist items (from items, and from consoles with matching id or wishlist flag)
+    const wishlistItems = items.filter(
+        item =>
+            wishlistIds.has(
+                String(item.id)
+            )
+    );
 
-    parsedData.consoles =
-        consoles;
+    const existingWishlistIds = new Set(wishlistItems.map(it => String(it.id)));
+
+    consoles.forEach(c => {
+        if (!c) return;
+        const idStr = String(c.id);
+        const inWishlist = wishlistIds.has(idStr) || c.isWishlist === true || c.wishlist === true || c.status === "wishlist" || c.etat === "wishlist";
+        if (inWishlist) {
+            if (!existingWishlistIds.has(idStr)) {
+                wishlistItems.push({ ...c, isConsole: true });
+                existingWishlistIds.add(idStr);
+            } else {
+                const found = wishlistItems.find(it => String(it.id) === idStr);
+                if (found) found.isConsole = true;
+            }
+        }
+    });
+
+    const extraWishlistConsoles = Array.isArray(data.wishlistConsoles)
+        ? data.wishlistConsoles
+        : (Array.isArray(data.wishlist_consoles) ? data.wishlist_consoles : []);
+    extraWishlistConsoles.forEach(c => {
+        if (c && !existingWishlistIds.has(String(c.id))) {
+            wishlistItems.push({ ...c, isConsole: true });
+            existingWishlistIds.add(String(c.id));
+        }
+    });
+
+    parsedData.wishlistGames = wishlistItems;
+    parsedData.consoles = consoles;
 
     // Compteurs
     if (gamesCount) {
@@ -1393,6 +1471,8 @@ function processCollectionData(data) {
         badgeWishlist.textContent =
             parsedData.wishlistGames.length;
     }
+
+    updateWishlistFilterCounts();
 }
 
 // Nettoyage des préfixes "other:" ou "autre:" souvent présents dans les exports de consoles personnalisées
@@ -1958,9 +2038,15 @@ function renderCurrentView() {
     if (profileContent) profileContent.style.display = "none";
     if (searchBoxWrap) searchBoxWrap.style.display = "flex";
 
-    // View mode toggle visible only for games and wishlist
+    // Wishlist filter toggle visibility
+    if (wishlistFilterToggle) {
+        wishlistFilterToggle.style.display = (currentTab === "wishlist") ? "inline-flex" : "none";
+    }
+
+    // View mode toggle visible only for games and wishlist (when not strictly consoles)
     if (viewModeToggle) {
-        viewModeToggle.style.display = (currentTab === "games" || currentTab === "wishlist") ? "inline-flex" : "none";
+        const canShowShelf = currentTab === "games" || (currentTab === "wishlist" && wishlistFilter !== "consoles");
+        viewModeToggle.style.display = canShowShelf ? "inline-flex" : "none";
     }
 
     // Sync toggle button active states
@@ -1983,6 +2069,11 @@ function renderCurrentView() {
         itemsToRender = parsedData.consoles;
     } else if (currentTab === "wishlist") {
         itemsToRender = parsedData.wishlistGames;
+        if (wishlistFilter === "games") {
+            itemsToRender = itemsToRender.filter(item => !isConsoleItem(item));
+        } else if (wishlistFilter === "consoles") {
+            itemsToRender = itemsToRender.filter(item => isConsoleItem(item));
+        }
     }
 
     // Filter by query
@@ -2000,11 +2091,12 @@ function renderCurrentView() {
         return;
     } else {
         if (emptyTabState) emptyTabState.style.display = "none";
-        collectionList.style.display = (currentViewMode === "shelf" && (currentTab === "games" || currentTab === "wishlist")) ? "flex" : "grid";
+        const isShelfAllowed = currentViewMode === "shelf" && (currentTab === "games" || (currentTab === "wishlist" && wishlistFilter !== "consoles"));
+        collectionList.style.display = isShelfAllowed ? "flex" : "grid";
     }
 
     // Render Cards or Shelves
-    if (currentTab === "consoles") {
+    if (currentTab === "consoles" || (currentTab === "wishlist" && wishlistFilter === "consoles")) {
         collectionList.className = "items-grid";
         itemsToRender.forEach(consoleItem => {
             const card = document.createElement("div");
@@ -2024,6 +2116,8 @@ function renderCurrentView() {
                 ? `<img src="${escapeHtml(consoleImage)}" alt="${escapeHtml(name)}" class="game-cover-img" loading="lazy">`
                 : `<div class="game-cover-fallback"><span>🕹️</span><small style="font-size:0.75rem;color:var(--text-dim);">${escapeHtml(brand)}</small></div>`;
 
+            const isWishlist = currentTab === "wishlist";
+
             card.innerHTML = `
                 <div class="game-cover-wrap">
                     ${coverHtml}
@@ -2032,18 +2126,18 @@ function renderCurrentView() {
                     <h3 class="game-title" title="${escapeHtml(name)}">${escapeHtml(name)}</h3>
                     <div class="game-meta-row">
                         <span class="platform-pill" style="color: var(--pink); border-color: rgba(255, 45, 164, 0.3); background: rgba(255, 45, 164, 0.1);" title="${escapeHtml(brand)}">${escapeHtml(brand)}</span>
-                        <span class="status-indicator" style="color: var(--pink);">🕹️ Console</span>
+                        <span class="status-indicator" style="color: ${isWishlist ? "var(--yellow)" : "var(--pink)"};">${isWishlist ? "⭐ Wishlist" : "🕹️ Console"}</span>
                     </div>
                 </div>
             `;
             card.setAttribute("role", "button");
             card.setAttribute("tabindex", "0");
             card.setAttribute("aria-label", `Voir les détails de la console ${name}`);
-            card.addEventListener("click", () => openDetailModal(consoleItem, "consoles"));
+            card.addEventListener("click", () => openDetailModal(consoleItem, isWishlist ? "wishlist" : "consoles"));
             card.addEventListener("keydown", (e) => {
                 if (e.key === "Enter" || e.key === " ") {
                     e.preventDefault();
-                    openDetailModal(consoleItem, "consoles");
+                    openDetailModal(consoleItem, isWishlist ? "wishlist" : "consoles");
                 }
             });
 
@@ -2051,21 +2145,32 @@ function renderCurrentView() {
         });
     } else if (currentViewMode === "shelf") {
         // Shelf view (Tranches sur étagères de bibliothèque)
-        renderShelfView(itemsToRender);
+        const shelfItems = currentTab === "wishlist" ? itemsToRender.filter(it => !isConsoleItem(it)) : itemsToRender;
+        renderShelfView(shelfItems);
+        // If wishlist with "all" and there are consoles, display them in an elegant section below the bookcase
+        if (currentTab === "wishlist" && wishlistFilter === "all") {
+            const wishlistConsoles = itemsToRender.filter(it => isConsoleItem(it));
+            if (wishlistConsoles.length > 0) {
+                renderWishlistConsolesBelowShelf(wishlistConsoles);
+            }
+        }
     } else {
         // Standard Grid view (Vignettes / Jaquettes)
         collectionList.className = "items-grid";
         itemsToRender.forEach(game => {
+            const isConsole = isConsoleItem(game);
             const card = document.createElement("div");
-            card.className = "game-card";
+            card.className = isConsole ? "console-card" : "game-card";
 
-            const title = game.title || game.name || "Jeu sans titre";
-            const platform = getPlatformDisplayName(game);
-            const coverUrl = getGameCoverUrl(game);
+            const title = game.title || game.name || game.consoleName || (isConsole ? "Console" : "Jeu sans titre");
+            const platform = isConsole ? (game.brand || "Console") : getPlatformDisplayName(game);
+            const coverUrl = isConsole
+                ? (game.driveImage || game.image || game.cover || game.photo || "")
+                : getGameCoverUrl(game);
 
             const coverHtml = coverUrl
                 ? `<img src="${escapeHtml(coverUrl)}" alt="${escapeHtml(title)}" class="game-cover-img" loading="lazy">`
-                : `<div class="game-cover-fallback"><span>🎮</span><small style="font-size:0.75rem;color:var(--text-dim);">${escapeHtml(platform)}</small></div>`;
+                : `<div class="game-cover-fallback"><span>${isConsole ? "🕹️" : "🎮"}</span><small style="font-size:0.75rem;color:var(--text-dim);">${escapeHtml(platform)}</small></div>`;
 
             const isWishlist = currentTab === "wishlist";
             const statusLabel = isWishlist ? "⭐ Wishlist" : "✓ Possédé";
@@ -2078,7 +2183,7 @@ function renderCurrentView() {
                 <div class="game-card-body">
                     <h3 class="game-title" title="${escapeHtml(title)}">${escapeHtml(title)}</h3>
                     <div class="game-meta-row">
-                        <span class="platform-pill" title="${escapeHtml(platform)}">${escapeHtml(platform)}</span>
+                        <span class="platform-pill" ${isConsole ? 'style="color: var(--pink); border-color: rgba(255, 45, 164, 0.3); background: rgba(255, 45, 164, 0.1);"' : ''} title="${escapeHtml(platform)}">${escapeHtml(platform)}</span>
                         <span class="status-indicator" style="color:${statusColor}">${statusLabel}</span>
                     </div>
                 </div>
@@ -2086,20 +2191,28 @@ function renderCurrentView() {
 
             card.setAttribute("role", "button");
             card.setAttribute("tabindex", "0");
-            card.setAttribute("aria-label", `Voir les détails du jeu ${title}`);
+            card.setAttribute("aria-label", `Voir les détails de ${isConsole ? "la console" : "du jeu"} ${title}`);
             card.addEventListener("click", () => {
-                openGameDetails(
-                    game,
-                    currentTab === "wishlist"
-                );
-            });
-            card.addEventListener("keydown", (e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
+                if (isConsole) {
+                    openDetailModal(game, isWishlist ? "wishlist" : "consoles");
+                } else {
                     openGameDetails(
                         game,
                         currentTab === "wishlist"
                     );
+                }
+            });
+            card.addEventListener("keydown", (e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    if (isConsole) {
+                        openDetailModal(game, isWishlist ? "wishlist" : "consoles");
+                    } else {
+                        openGameDetails(
+                            game,
+                            currentTab === "wishlist"
+                        );
+                    }
                 }
             });
 
@@ -2851,6 +2964,10 @@ function switchTab(tabName) {
     if (tabName === "wishlist" && tabWishlist) tabWishlist.classList.add("active");
     if (tabName === "profile" && tabProfile) tabProfile.classList.add("active");
 
+    if (tabName === "wishlist") {
+        updateWishlistFilterCounts();
+    }
+
     renderCurrentView();
 }
 
@@ -2858,6 +2975,83 @@ if (tabGames) tabGames.addEventListener("click", () => switchTab("games"));
 if (tabConsoles) tabConsoles.addEventListener("click", () => switchTab("consoles"));
 if (tabWishlist) tabWishlist.addEventListener("click", () => switchTab("wishlist"));
 if (tabProfile) tabProfile.addEventListener("click", () => switchTab("profile"));
+
+// Wishlist filter button listeners
+[filterWishlistAll, filterWishlistGames, filterWishlistConsoles].forEach(btn => {
+    if (btn) {
+        btn.addEventListener("click", () => {
+            setWishlistFilter(btn.dataset.filter || "all");
+        });
+    }
+});
+
+function renderWishlistConsolesBelowShelf(consolesList) {
+    if (!collectionList || !consolesList || consolesList.length === 0) return;
+
+    const section = document.createElement("div");
+    section.className = "wishlist-shelf-consoles-section";
+    section.style.marginTop = "28px";
+    section.style.width = "100%";
+    section.innerHTML = `
+        <div class="bookcase-crown-face" style="margin-bottom: 16px; border-radius: var(--radius-md);">
+            <div class="bookcase-header-left">
+                <span class="bookcase-ornament">🕹️</span>
+                <div>
+                    <h3 class="bookcase-main-title">Consoles en Wishlist</h3>
+                    <span class="bookcase-subtitle">${consolesList.length} ${consolesList.length > 1 ? "consoles" : "console"}</span>
+                </div>
+            </div>
+        </div>
+        <div class="items-grid" id="wishlistShelfConsolesGrid"></div>
+    `;
+
+    const grid = section.querySelector("#wishlistShelfConsolesGrid");
+    consolesList.forEach(consoleItem => {
+        const card = document.createElement("div");
+        card.className = "console-card";
+
+        const name = consoleItem.name || consoleItem.title || consoleItem.consoleName || consoleItem.nom || "Console";
+        const brand = consoleItem.brand || consoleItem.manufacturer || consoleItem.company || "Retro / Moderne";
+
+        const consoleImage =
+            consoleItem.driveImage ||
+            consoleItem.image ||
+            consoleItem.cover ||
+            consoleItem.photo ||
+            "";
+
+        const coverHtml = consoleImage
+            ? `<img src="${escapeHtml(consoleImage)}" alt="${escapeHtml(name)}" class="game-cover-img" loading="lazy">`
+            : `<div class="game-cover-fallback"><span>🕹️</span><small style="font-size:0.75rem;color:var(--text-dim);">${escapeHtml(brand)}</small></div>`;
+
+        card.innerHTML = `
+            <div class="game-cover-wrap">
+                ${coverHtml}
+            </div>
+            <div class="game-card-body">
+                <h3 class="game-title" title="${escapeHtml(name)}">${escapeHtml(name)}</h3>
+                <div class="game-meta-row">
+                    <span class="platform-pill" style="color: var(--pink); border-color: rgba(255, 45, 164, 0.3); background: rgba(255, 45, 164, 0.1);" title="${escapeHtml(brand)}">${escapeHtml(brand)}</span>
+                    <span class="status-indicator" style="color: var(--yellow);">⭐ Wishlist</span>
+                </div>
+            </div>
+        `;
+        card.setAttribute("role", "button");
+        card.setAttribute("tabindex", "0");
+        card.setAttribute("aria-label", `Voir les détails de la console ${name}`);
+        card.addEventListener("click", () => openDetailModal(consoleItem, "wishlist"));
+        card.addEventListener("keydown", (e) => {
+            if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                openDetailModal(consoleItem, "wishlist");
+            }
+        });
+
+        grid.appendChild(card);
+    });
+
+    collectionList.appendChild(section);
+}
 
 if (profileLogoutBtn) {
     profileLogoutBtn.addEventListener("click", async () => {
