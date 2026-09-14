@@ -1395,36 +1395,68 @@ function processCollectionData(data) {
     }
 }
 
+// Nettoyage des préfixes "other:" ou "autre:" souvent présents dans les exports de consoles personnalisées
+function cleanPlatformName(name) {
+    if (!name) return "";
+    let cleaned = String(name).trim();
+    cleaned = cleaned.replace(/^(?:other|autre)\s*[:\-_]\s*/i, "").trim();
+    if (/^other$/i.test(cleaned)) {
+        return "Autre";
+    }
+    return cleaned;
+}
+
 // Helper to resolve platform name from console ID or object
 function getPlatformDisplayName(game) {
     if (!game) return "Jeu";
     const rawConsole = game.console || game.platform || game.system || "";
     if (!rawConsole) return "Jeu";
 
+    let result = rawConsole;
+    const cleanedRaw = cleanPlatformName(rawConsole).toLowerCase();
+
     if (Array.isArray(parsedData.consoles)) {
         const found = parsedData.consoles.find(c => {
             if (!c) return false;
-            if (typeof c === "string") return c === rawConsole;
+            if (typeof c === "string") {
+                return c === rawConsole || cleanPlatformName(c).toLowerCase() === cleanedRaw;
+            }
+            const cId = String(c.id ?? "");
+            const cConsoleId = String(c.consoleId ?? "");
+            const cConsole_id = String(c.console_id ?? "");
+            const cKey = String(c.key ?? "");
+            const cSlug = String(c.slug ?? "");
+            const cName = String(c.name || c.title || c.consoleName || c.nom || c.label || "");
+
             return (
-                String(c.id) === String(rawConsole) ||
-                String(c.consoleId) === String(rawConsole) ||
-                String(c.console_id) === String(rawConsole) ||
-                String(c.key) === String(rawConsole) ||
-                String(c.slug) === String(rawConsole)
+                cId === rawConsole ||
+                cConsoleId === rawConsole ||
+                cConsole_id === rawConsole ||
+                cKey === rawConsole ||
+                cSlug === rawConsole ||
+                cleanPlatformName(cId).toLowerCase() === cleanedRaw ||
+                cleanPlatformName(cSlug).toLowerCase() === cleanedRaw ||
+                cleanPlatformName(cName).toLowerCase() === cleanedRaw
             );
         });
 
         if (found) {
-            if (typeof found === "string") return found;
-            return found.name || found.title || found.consoleName || found.nom || found.label || rawConsole;
+            if (typeof found === "string") {
+                result = found;
+            } else {
+                result = found.name || found.title || found.consoleName || found.nom || found.label || rawConsole;
+            }
         }
+    } else if (game.consoleName) {
+        result = game.consoleName;
+    } else if (game.platformName) {
+        result = game.platformName;
+    } else if (game.systemName) {
+        result = game.systemName;
     }
 
-    if (game.consoleName) return game.consoleName;
-    if (game.platformName) return game.platformName;
-    if (game.systemName) return game.systemName;
-
-    return rawConsole;
+    const finalResult = cleanPlatformName(result) || cleanPlatformName(rawConsole) || result || "Jeu";
+    return finalResult;
 }
 
 function getGameCoverUrl(game) {
@@ -2078,7 +2110,7 @@ function renderCurrentView() {
 
 // 5b. Bookshelf View Helpers & Renderer
 function getSpineThemeClass(platformName) {
-    const p = (platformName || "").toLowerCase();
+    const p = cleanPlatformName(platformName || "").toLowerCase();
     if (p.includes("playstation 2") || p.includes("ps2")) return "spine-ps2";
     if (p.includes("switch")) return "spine-switch";
     if (p.includes("playstation 5") || p.includes("ps5")) return "spine-ps5";
@@ -2095,7 +2127,8 @@ function getSpineThemeClass(platformName) {
 }
 
 function getSpineShortTag(platformName) {
-    const p = (platformName || "").toLowerCase();
+    const cleaned = cleanPlatformName(platformName || "");
+    const p = cleaned.toLowerCase();
     if (p.includes("playstation 2") || p.includes("ps2")) return "PS2";
     if (p.includes("switch")) return "NSW";
     if (p.includes("playstation 5") || p.includes("ps5")) return "PS5";
@@ -2115,7 +2148,7 @@ function getSpineShortTag(platformName) {
     if (p.includes("nes")) return "NES";
     if (p.includes("mega drive") || p.includes("genesis")) return "MD";
     if (p.includes("dreamcast")) return "DC";
-    return (platformName || "JEU").substring(0, 4).toUpperCase();
+    return (cleaned || "JEU").substring(0, 4).toUpperCase();
 }
 
 let shelfSortOrder = localStorage.getItem("arcade_relics_shelf_sort_order") || "desc";
@@ -2194,6 +2227,8 @@ function getGameAddedTimestamp(game, fallbackIndex = null) {
 }
 
 function createGameSpineElement(game, platformName) {
+
+    platformName = cleanPlatformName(platformName) || platformName || "Jeu";
 
     const spine =
         document.createElement("div");
@@ -2358,7 +2393,7 @@ function createGameSpineElement(game, platformName) {
                             font-weight:600;
                         "
                     >
-                        ${escapeHtml(platformName)}
+                        ${escapeHtml(cleanPlatformName(platformName) || platformName)}
                     </span>
 
                     ${conditionLabel
