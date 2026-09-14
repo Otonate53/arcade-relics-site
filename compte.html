@@ -144,6 +144,34 @@
                             aria-label="Rechercher dans votre collection">
                     </div>
 
+                    <!-- Games Filters (Dropdowns Console & Statut/Tri) -->
+                    <div class="games-filters-wrap" id="gamesFiltersWrap">
+                        <div class="filter-select-wrap">
+                            <svg class="icon filter-select-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                <rect x="2" y="6" width="20" height="12" rx="2" />
+                                <path d="M6 12h4m-2-2v4" />
+                                <circle cx="17" cy="10" r="1" fill="currentColor" />
+                                <circle cx="15" cy="13" r="1" fill="currentColor" />
+                            </svg>
+                            <select id="gamesConsoleFilter" class="collection-select" aria-label="Filtrer par console">
+                                <option value="all">Toutes les consoles</option>
+                            </select>
+                        </div>
+
+                        <div class="filter-select-wrap">
+                            <svg class="icon filter-select-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                <path d="M3 6h18M6 12h12m-9 6h6" />
+                            </svg>
+                            <select id="gamesStatusFilter" class="collection-select" aria-label="Trier ou filtrer par statut">
+                                <option value="all">Tous les jeux</option>
+                                <option value="az">Ordre alphabétique (A-Z)</option>
+                                <option value="backlog">Statut : Pile à terminer (pas commencé)</option>
+                                <option value="playing">Statut : En cours</option>
+                                <option value="finished">Statut : Terminés</option>
+                            </select>
+                        </div>
+                    </div>
+
                     <!-- Wishlist Type Filter (Tous / Jeux / Consoles) -->
                     <div class="wishlist-filter-toggle" id="wishlistFilterToggle" role="group" aria-label="Filtre Wishlist" style="display: none;">
                         <button type="button" class="wishlist-filter-btn active" id="filterWishlistAll"

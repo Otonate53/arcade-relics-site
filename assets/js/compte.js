@@ -252,6 +252,7 @@ function applyEnrichedData(
             };
         });
     }
+    populateGamesConsoleFilter();
 }
 async function loadCachedDataFromDB() {
 
@@ -1082,6 +1083,9 @@ const itemModalCloseBtn = document.getElementById("itemModalCloseBtn");
 const itemModalContent = document.getElementById("itemModalContent");
 const modalAmbientAura = document.getElementById("modalAmbientAura");
 
+const gamesFiltersWrap = document.getElementById("gamesFiltersWrap");
+const gamesConsoleFilter = document.getElementById("gamesConsoleFilter");
+const gamesStatusFilter = document.getElementById("gamesStatusFilter");
 const wishlistFilterToggle = document.getElementById("wishlistFilterToggle");
 const filterWishlistAll = document.getElementById("filterWishlistAll");
 const filterWishlistGames = document.getElementById("filterWishlistGames");
@@ -1092,10 +1096,81 @@ let parsedData = {
     consoles: [],
     wishlistGames: [],
     finishedIds: new Set(),
-    backlogIds: new Set()
+    backlogIds: new Set(),
+    playingIds: new Set()
 };
 let currentTab = "games"; // "games" | "consoles" | "wishlist" | "profile"
 let wishlistFilter = "all"; // "all" | "games" | "consoles"
+
+// Helpers de détection de statut pour les jeux
+function isGameFinished(game) {
+    if (!game) return false;
+    const id = String(game.id);
+    if (parsedData.finishedIds && parsedData.finishedIds.has(id)) return true;
+    if (game.finished === true || game.completed === true) return true;
+    const rawStatus = String(game.status || game.statut || game.meta?.status || game.meta?.statut || "").toLowerCase();
+    if (rawStatus.includes("termin") || rawStatus.includes("finish") || rawStatus.includes("complete") || rawStatus.includes("done")) return true;
+    if (game.progress === 1 || game.progress === "1" || game.progress === true) return true;
+    return false;
+}
+
+function isGamePlaying(game) {
+    if (!game) return false;
+    if (isGameFinished(game)) return false;
+    const id = String(game.id);
+    if (parsedData.playingIds && parsedData.playingIds.has(id)) return true;
+    if (game.playing === true || game.inProgress === true || game.in_progress === true) return true;
+    const rawStatus = String(game.status || game.statut || game.meta?.status || game.meta?.statut || "").toLowerCase();
+    if (rawStatus.includes("cours") || rawStatus.includes("play") || rawStatus.includes("progress") || rawStatus.includes("started")) return true;
+    if (typeof game.progress === "number" && game.progress > 0 && game.progress < 1) return true;
+    if (typeof game.progress === "string" && (game.progress.includes("%") || game.progress.toLowerCase().includes("cours"))) return true;
+    return false;
+}
+
+function isGameBacklog(game) {
+    if (!game) return false;
+    if (isGameFinished(game) || isGamePlaying(game)) return false;
+    const id = String(game.id);
+    if (parsedData.backlogIds && parsedData.backlogIds.has(id)) return true;
+    if (game.backlog === true) return true;
+    const rawStatus = String(game.status || game.statut || game.meta?.status || game.meta?.statut || "").toLowerCase();
+    if (rawStatus.includes("backlog") || rawStatus.includes("pile") || rawStatus.includes("attente") || rawStatus.includes("unstarted") || rawStatus.includes("pas commenc") || rawStatus.includes("jouer")) return true;
+    // Si parsedData.backlogIds a des entrées mais ce jeu n'en fait pas partie, ne pas l'inclure
+    if (parsedData.backlogIds && parsedData.backlogIds.size > 0) {
+        return false;
+    }
+    // Par défaut si pas d'ID backlog explicite et non terminé/non en cours, c'est un jeu à faire
+    return true;
+}
+
+function populateGamesConsoleFilter() {
+    if (!gamesConsoleFilter) return;
+
+    const currentVal = gamesConsoleFilter.value || "all";
+    const games = parsedData.ownedGames || [];
+
+    const consoleCounts = new Map();
+    games.forEach(game => {
+        const platform = cleanPlatformName(getPlatformDisplayName(game)) || "Autre";
+        consoleCounts.set(platform, (consoleCounts.get(platform) || 0) + 1);
+    });
+
+    const sortedPlatforms = Array.from(consoleCounts.keys()).sort((a, b) => a.localeCompare(b, "fr"));
+
+    let html = `<option value="all">Toutes les consoles (${games.length})</option>`;
+    sortedPlatforms.forEach(p => {
+        const count = consoleCounts.get(p);
+        html += `<option value="${escapeHtml(p)}">${escapeHtml(p)} (${count})</option>`;
+    });
+
+    gamesConsoleFilter.innerHTML = html;
+
+    if (currentVal && (currentVal === "all" || consoleCounts.has(currentVal))) {
+        gamesConsoleFilter.value = currentVal;
+    } else {
+        gamesConsoleFilter.value = "all";
+    }
+}
 
 // Helper to identify if an item is a console (vs a game)
 function isConsoleItem(item) {
@@ -1331,6 +1406,22 @@ function processCollectionData(data) {
             backlog.map(id => String(id))
         );
 
+    const playing =
+        Array.isArray(data.playing)
+            ? data.playing
+            : (Array.isArray(data.in_progress)
+                ? data.in_progress
+                : (Array.isArray(data.inProgress)
+                    ? data.inProgress
+                    : (Array.isArray(data.en_cours)
+                        ? data.en_cours
+                        : [])));
+
+    parsedData.playingIds =
+        new Set(
+            playing.map(id => String(id))
+        );
+
     console.log(
         "Items :",
         items
@@ -1473,6 +1564,7 @@ function processCollectionData(data) {
     }
 
     updateWishlistFilterCounts();
+    populateGamesConsoleFilter();
 }
 
 // Nettoyage des préfixes "other:" ou "autre:" souvent présents dans les exports de consoles personnalisées
@@ -2026,22 +2118,27 @@ function openGameDetails(game, isWishlist = false) {
 
 // 5. Render Current View
 function renderCurrentView() {
+    // Visibilité des filtres selon l'onglet actif
+    if (gamesFiltersWrap) {
+        gamesFiltersWrap.style.display = (currentTab === "games") ? "inline-flex" : "none";
+    }
+    if (wishlistFilterToggle) {
+        wishlistFilterToggle.style.display = (currentTab === "wishlist") ? "inline-flex" : "none";
+    }
+
     if (currentTab === "profile") {
         if (collectionList) collectionList.style.display = "none";
         if (emptyTabState) emptyTabState.style.display = "none";
         if (searchBoxWrap) searchBoxWrap.style.display = "none";
         if (profileContent) profileContent.style.display = "block";
         if (viewModeToggle) viewModeToggle.style.display = "none";
+        if (gamesFiltersWrap) gamesFiltersWrap.style.display = "none";
+        if (wishlistFilterToggle) wishlistFilterToggle.style.display = "none";
         return;
     }
 
     if (profileContent) profileContent.style.display = "none";
     if (searchBoxWrap) searchBoxWrap.style.display = "flex";
-
-    // Wishlist filter toggle visibility
-    if (wishlistFilterToggle) {
-        wishlistFilterToggle.style.display = (currentTab === "wishlist") ? "inline-flex" : "none";
-    }
 
     // View mode toggle visible only for games and wishlist (when not strictly consoles)
     if (viewModeToggle) {
@@ -2065,6 +2162,31 @@ function renderCurrentView() {
 
     if (currentTab === "games") {
         itemsToRender = parsedData.ownedGames;
+
+        // 1. Filtre par type de console
+        const selectedConsole = gamesConsoleFilter ? gamesConsoleFilter.value : "all";
+        if (selectedConsole && selectedConsole !== "all") {
+            itemsToRender = itemsToRender.filter(item => {
+                const p = cleanPlatformName(getPlatformDisplayName(item)) || "Autre";
+                return p.toLowerCase() === selectedConsole.toLowerCase();
+            });
+        }
+
+        // 2. Filtre par statut ou tri alphabétique
+        const selectedStatus = gamesStatusFilter ? gamesStatusFilter.value : "all";
+        if (selectedStatus === "finished") {
+            itemsToRender = itemsToRender.filter(item => isGameFinished(item));
+        } else if (selectedStatus === "playing") {
+            itemsToRender = itemsToRender.filter(item => isGamePlaying(item));
+        } else if (selectedStatus === "backlog") {
+            itemsToRender = itemsToRender.filter(item => isGameBacklog(item));
+        } else if (selectedStatus === "az") {
+            itemsToRender = [...itemsToRender].sort((a, b) => {
+                const titleA = (a.title || a.name || "").toLowerCase();
+                const titleB = (b.title || b.name || "").toLowerCase();
+                return titleA.localeCompare(titleB, "fr");
+            });
+        }
     } else if (currentTab === "consoles") {
         itemsToRender = parsedData.consoles;
     } else if (currentTab === "wishlist") {
@@ -2726,29 +2848,39 @@ function renderShelfView(itemsToRender) {
 
     if (!itemsToRender || itemsToRender.length === 0) return;
 
-    // Trier l'ensemble des jeux par date d'ajout
+    // Trier l'ensemble des jeux par date d'ajout (ou A-Z si le filtre statut est sur A-Z)
+    const isAzSort = currentTab === "games" && gamesStatusFilter && gamesStatusFilter.value === "az";
+
     const itemsWithMeta = itemsToRender.map((game, index) => ({
         game,
         timestamp: getGameAddedTimestamp(game, null),
         originalIndex: index
     }));
 
-    itemsWithMeta.sort((a, b) => {
-        if (a.timestamp !== null && b.timestamp !== null) {
-            if (a.timestamp !== b.timestamp) {
-                return shelfSortOrder === "asc"
-                    ? a.timestamp - b.timestamp
-                    : b.timestamp - a.timestamp;
+    if (isAzSort) {
+        itemsWithMeta.sort((a, b) => {
+            const titleA = (a.game.title || a.game.name || "").toLowerCase();
+            const titleB = (b.game.title || b.game.name || "").toLowerCase();
+            return titleA.localeCompare(titleB, "fr");
+        });
+    } else {
+        itemsWithMeta.sort((a, b) => {
+            if (a.timestamp !== null && b.timestamp !== null) {
+                if (a.timestamp !== b.timestamp) {
+                    return shelfSortOrder === "asc"
+                        ? a.timestamp - b.timestamp
+                        : b.timestamp - a.timestamp;
+                }
+            } else if (a.timestamp !== null) {
+                return shelfSortOrder === "asc" ? -1 : 1;
+            } else if (b.timestamp !== null) {
+                return shelfSortOrder === "asc" ? 1 : -1;
             }
-        } else if (a.timestamp !== null) {
-            return shelfSortOrder === "asc" ? -1 : 1;
-        } else if (b.timestamp !== null) {
-            return shelfSortOrder === "asc" ? 1 : -1;
-        }
-        return shelfSortOrder === "asc"
-            ? a.originalIndex - b.originalIndex
-            : b.originalIndex - a.originalIndex;
-    });
+            return shelfSortOrder === "asc"
+                ? a.originalIndex - b.originalIndex
+                : b.originalIndex - a.originalIndex;
+        });
+    }
 
     const sortedGames = itemsWithMeta.map(item => item.game);
 
@@ -2964,8 +3096,18 @@ function switchTab(tabName) {
     if (tabName === "wishlist" && tabWishlist) tabWishlist.classList.add("active");
     if (tabName === "profile" && tabProfile) tabProfile.classList.add("active");
 
+    if (tabName === "games") {
+        if (gamesFiltersWrap) gamesFiltersWrap.style.display = "inline-flex";
+        populateGamesConsoleFilter();
+    } else {
+        if (gamesFiltersWrap) gamesFiltersWrap.style.display = "none";
+    }
+
     if (tabName === "wishlist") {
         updateWishlistFilterCounts();
+        if (wishlistFilterToggle) wishlistFilterToggle.style.display = "inline-flex";
+    } else {
+        if (wishlistFilterToggle) wishlistFilterToggle.style.display = "none";
     }
 
     renderCurrentView();
@@ -2975,6 +3117,18 @@ if (tabGames) tabGames.addEventListener("click", () => switchTab("games"));
 if (tabConsoles) tabConsoles.addEventListener("click", () => switchTab("consoles"));
 if (tabWishlist) tabWishlist.addEventListener("click", () => switchTab("wishlist"));
 if (tabProfile) tabProfile.addEventListener("click", () => switchTab("profile"));
+
+// Games filters change listeners
+if (gamesConsoleFilter) {
+    gamesConsoleFilter.addEventListener("change", () => {
+        renderCurrentView();
+    });
+}
+if (gamesStatusFilter) {
+    gamesStatusFilter.addEventListener("change", () => {
+        renderCurrentView();
+    });
+}
 
 // Wishlist filter button listeners
 [filterWishlistAll, filterWishlistGames, filterWishlistConsoles].forEach(btn => {
