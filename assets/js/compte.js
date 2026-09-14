@@ -1265,6 +1265,7 @@ function setWishlistFilter(filter) {
         btn.classList.toggle("active", isActive);
         btn.setAttribute("aria-pressed", String(isActive));
     });
+    if (typeof updateWishlistGlider === "function") updateWishlistGlider();
     renderCurrentView();
 }
 
@@ -2206,6 +2207,7 @@ function renderCurrentView() {
         viewModeGrid.setAttribute("aria-pressed", String(currentViewMode === "grid"));
         viewModeShelf.classList.toggle("active", currentViewMode === "shelf");
         viewModeShelf.setAttribute("aria-pressed", String(currentViewMode === "shelf"));
+        if (typeof updateViewModeGlider === "function") updateViewModeGlider();
     }
 
     if (!collectionList) return;
@@ -3104,53 +3106,69 @@ window.addEventListener("resize", () => {
     }, 150);
 });
 
-// Animation de transition Liquide Glace (switch droite à gauche / gauche à droite)
-function triggerLiquidGlaceSwitch(direction = "left") {
-    const wrapper = document.getElementById("collectionViewsWrapper");
-    const sheen = document.getElementById("liquidGlaceSheen");
-    if (!wrapper) return;
+// Gliders Liquide Glace (Animation coulissante fluide sous les boutons)
+function updateTabsGlider() {
+    const tabsContainer = document.querySelector(".collection-tabs");
+    const glider = document.getElementById("tabsLiquidGlider");
+    const activeTab = tabsContainer ? tabsContainer.querySelector(".tab-button.active") : null;
+    if (!tabsContainer || !glider || !activeTab) return;
 
-    let target = null;
-    if (currentTab === "profile") {
-        target = document.getElementById("profileContent");
-    } else if (emptyTabState && emptyTabState.style.display !== "none") {
-        target = emptyTabState;
-    } else {
-        target = collectionList;
-    }
+    const containerRect = tabsContainer.getBoundingClientRect();
+    const tabRect = activeTab.getBoundingClientRect();
 
-    if (target) {
-        target.classList.remove("animate-liquid-slide-left", "animate-liquid-slide-right");
-        // Force reflow pour redémarrer l'animation de manière fluide
-        void target.offsetWidth;
-        const animClass = (direction === "right") ? "animate-liquid-slide-right" : "animate-liquid-slide-left";
-        target.classList.add(animClass);
+    const left = tabRect.left - containerRect.left;
+    const width = tabRect.width;
 
-        const cleanUp = () => {
-            target.classList.remove("animate-liquid-slide-left", "animate-liquid-slide-right");
-        };
-        target.addEventListener("animationend", cleanUp, { once: true });
-        setTimeout(cleanUp, 520);
-    }
+    glider.style.transform = `translateX(${left}px)`;
+    glider.style.width = `${width}px`;
+    glider.style.opacity = "1";
+}
 
-    if (sheen) {
-        sheen.classList.remove("sheen-active-left", "sheen-active-right");
-        void sheen.offsetWidth;
-        const sheenClass = (direction === "right") ? "sheen-active-right" : "sheen-active-left";
-        sheen.classList.add(sheenClass);
+function updateViewModeGlider() {
+    const viewToggle = document.getElementById("viewModeToggle");
+    const glider = document.getElementById("viewLiquidGlider");
+    const activeBtn = viewToggle ? viewToggle.querySelector(".view-toggle-btn.active") : null;
+    if (!viewToggle || !glider || !activeBtn) return;
 
-        const cleanUpSheen = () => {
-            sheen.classList.remove("sheen-active-left", "sheen-active-right");
-        };
-        sheen.addEventListener("animationend", cleanUpSheen, { once: true });
-        setTimeout(cleanUpSheen, 550);
-    }
+    const containerRect = viewToggle.getBoundingClientRect();
+    const btnRect = activeBtn.getBoundingClientRect();
+
+    const left = btnRect.left - containerRect.left;
+    const width = btnRect.width;
+
+    glider.style.transform = `translateX(${left}px)`;
+    glider.style.width = `${width}px`;
+    glider.style.opacity = "1";
+}
+
+function updateWishlistGlider() {
+    const wishlistToggle = document.getElementById("wishlistFilterToggle");
+    const glider = document.getElementById("wishlistLiquidGlider");
+    const activeBtn = wishlistToggle ? wishlistToggle.querySelector(".wishlist-filter-btn.active") : null;
+    if (!wishlistToggle || !glider || !activeBtn) return;
+
+    const containerRect = wishlistToggle.getBoundingClientRect();
+    const btnRect = activeBtn.getBoundingClientRect();
+
+    const left = btnRect.left - containerRect.left;
+    const width = btnRect.width;
+
+    glider.style.transform = `translateX(${left}px)`;
+    glider.style.width = `${width}px`;
+    glider.style.opacity = "1";
+}
+
+function updateAllGliders() {
+    requestAnimationFrame(() => {
+        updateTabsGlider();
+        updateViewModeGlider();
+        updateWishlistGlider();
+    });
 }
 
 // View Mode Handler
 function setViewMode(mode) {
     if (mode === currentViewMode) return;
-    const direction = (mode === "shelf") ? "left" : "right";
     currentViewMode = mode;
     try {
         localStorage.setItem("arcade_relics_view_mode", mode);
@@ -3165,8 +3183,8 @@ function setViewMode(mode) {
         viewModeShelf.setAttribute("aria-pressed", String(mode === "shelf"));
     }
 
+    updateViewModeGlider();
     renderCurrentView();
-    triggerLiquidGlaceSwitch(direction);
 }
 
 if (viewModeGrid) viewModeGrid.addEventListener("click", () => setViewMode("grid"));
@@ -3277,11 +3295,6 @@ function setupStatusDropdownEvents() {
 function switchTab(tabName) {
     if (tabName === currentTab) return;
 
-    const tabOrder = { games: 0, consoles: 1, wishlist: 2, profile: 3 };
-    const prevIndex = tabOrder[currentTab] ?? 0;
-    const newIndex = tabOrder[tabName] ?? 0;
-    const direction = (newIndex >= prevIndex) ? "left" : "right";
-
     currentTab = tabName;
     closeAllLiquidDropdowns();
 
@@ -3294,6 +3307,8 @@ function switchTab(tabName) {
     if (tabName === "wishlist" && tabWishlist) tabWishlist.classList.add("active");
     if (tabName === "profile" && tabProfile) tabProfile.classList.add("active");
 
+    updateTabsGlider();
+
     if (tabName === "games") {
         if (gamesFiltersWrap) gamesFiltersWrap.style.display = "inline-flex";
         populateGamesConsoleFilter();
@@ -3303,13 +3318,16 @@ function switchTab(tabName) {
 
     if (tabName === "wishlist") {
         updateWishlistFilterCounts();
-        if (wishlistFilterToggle) wishlistFilterToggle.style.display = "inline-flex";
+        if (wishlistFilterToggle) {
+            wishlistFilterToggle.style.display = "inline-flex";
+            updateWishlistGlider();
+        }
     } else {
         if (wishlistFilterToggle) wishlistFilterToggle.style.display = "none";
     }
 
     renderCurrentView();
-    triggerLiquidGlaceSwitch(direction);
+    requestAnimationFrame(updateTabsGlider);
 }
 
 if (tabGames) tabGames.addEventListener("click", () => switchTab("games"));
@@ -3332,6 +3350,10 @@ if (gamesStatusFilter) {
 // Initialisation des dropdowns liquide glace
 initLiquidGlassDropdowns();
 setupStatusDropdownEvents();
+
+// Initialisation des gliders liquide glace sous les boutons (switch fluide)
+window.addEventListener("resize", updateAllGliders);
+setTimeout(updateAllGliders, 80);
 
 // Wishlist filter button listeners
 [filterWishlistAll, filterWishlistGames, filterWishlistConsoles].forEach(btn => {

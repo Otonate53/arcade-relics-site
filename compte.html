@@ -117,6 +117,7 @@
                 <!-- Controls: Tabs & Search -->
                 <div class="collection-controls-bar">
                     <div class="collection-tabs" role="tablist">
+                        <div class="liquid-glider" id="tabsLiquidGlider" aria-hidden="true"></div>
                         <button type="button" class="tab-button active" id="tabGames" role="tab" aria-selected="true">
                             <span>🎮 Mes Jeux</span>
                             <span class="tab-badge" id="badgeGames">0</span>
@@ -222,6 +223,7 @@
 
                     <!-- Wishlist Type Filter (Tous / Jeux / Consoles) -->
                     <div class="wishlist-filter-toggle" id="wishlistFilterToggle" role="group" aria-label="Filtre Wishlist" style="display: none;">
+                        <div class="liquid-glider" id="wishlistLiquidGlider" aria-hidden="true"></div>
                         <button type="button" class="wishlist-filter-btn active" id="filterWishlistAll"
                             data-filter="all" aria-pressed="true">
                             <span>Tous</span>
@@ -241,6 +243,7 @@
 
                     <!-- View Mode Toggle (Grille vs Étagère) -->
                     <div class="view-mode-toggle" id="viewModeToggle" role="group" aria-label="Mode d'affichage">
+                        <div class="liquid-glider" id="viewLiquidGlider" aria-hidden="true"></div>
                         <button type="button" class="view-toggle-btn active" id="viewModeGrid"
                             title="Affichage Vignettes / Grille" aria-pressed="true">
                             <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none"
@@ -267,10 +270,8 @@
                     </div>
                 </div>
 
-                <!-- Views Wrapper with Liquide Glace Switch Animation -->
+                <!-- Collection Views Container -->
                 <div class="collection-views-wrapper" id="collectionViewsWrapper">
-                    <div class="liquid-glace-sheen" id="liquidGlaceSheen" aria-hidden="true"></div>
-
                     <!-- Profile Tab & Dashboard Content -->
                     <div id="profileContent" style="display: none;">
                         <div class="profile-dashboard-card">
