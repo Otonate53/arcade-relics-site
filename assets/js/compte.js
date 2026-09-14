@@ -1306,7 +1306,10 @@ onAuthStateChanged(auth, async (user) => {
 
         if (loading) loading.style.display = "none";
         if (errorMessage) errorMessage.style.display = "none";
-        if (accountContent) accountContent.style.display = "block";
+        if (accountContent) {
+            accountContent.style.display = "block";
+            updateAllGliders(true);
+        }
 
         // 2. Synchroniser Google Drive si le jeton d'accès est présent
         const accessToken =
@@ -1620,6 +1623,7 @@ function processCollectionData(data) {
 
     updateWishlistFilterCounts();
     populateGamesConsoleFilter();
+    updateAllGliders();
 }
 
 // Nettoyage des préfixes "other:" ou "autre:" souvent présents dans les exports de consoles personnalisées
@@ -3107,62 +3111,62 @@ window.addEventListener("resize", () => {
 });
 
 // Gliders Liquide Glace (Animation coulissante fluide sous les boutons)
-function updateTabsGlider() {
+function positionGlider(container, glider, activeEl, immediate = false) {
+    if (!container || !glider || !activeEl) return;
+
+    const width = activeEl.offsetWidth;
+    const height = activeEl.offsetHeight;
+    if (!width || !height || container.offsetWidth <= 0) {
+        glider.classList.remove("visible");
+        return;
+    }
+
+    const left = activeEl.offsetLeft;
+    const wasVisible = glider.classList.contains("visible");
+    const isImmediate = immediate === true || !wasVisible;
+
+    if (isImmediate) {
+        const prevTransition = glider.style.transition;
+        glider.style.transition = "none";
+        glider.style.transform = `translateX(${left}px)`;
+        glider.style.width = `${width}px`;
+        void glider.offsetWidth;
+        glider.style.transition = prevTransition || "";
+    } else {
+        glider.style.transform = `translateX(${left}px)`;
+        glider.style.width = `${width}px`;
+    }
+
+    glider.classList.add("visible");
+}
+
+function updateTabsGlider(immediate = false) {
     const tabsContainer = document.querySelector(".collection-tabs");
     const glider = document.getElementById("tabsLiquidGlider");
     const activeTab = tabsContainer ? tabsContainer.querySelector(".tab-button.active") : null;
-    if (!tabsContainer || !glider || !activeTab) return;
-
-    const containerRect = tabsContainer.getBoundingClientRect();
-    const tabRect = activeTab.getBoundingClientRect();
-
-    const left = tabRect.left - containerRect.left;
-    const width = tabRect.width;
-
-    glider.style.transform = `translateX(${left}px)`;
-    glider.style.width = `${width}px`;
-    glider.style.opacity = "1";
+    positionGlider(tabsContainer, glider, activeTab, immediate);
 }
 
-function updateViewModeGlider() {
+function updateViewModeGlider(immediate = false) {
     const viewToggle = document.getElementById("viewModeToggle");
     const glider = document.getElementById("viewLiquidGlider");
     const activeBtn = viewToggle ? viewToggle.querySelector(".view-toggle-btn.active") : null;
-    if (!viewToggle || !glider || !activeBtn) return;
-
-    const containerRect = viewToggle.getBoundingClientRect();
-    const btnRect = activeBtn.getBoundingClientRect();
-
-    const left = btnRect.left - containerRect.left;
-    const width = btnRect.width;
-
-    glider.style.transform = `translateX(${left}px)`;
-    glider.style.width = `${width}px`;
-    glider.style.opacity = "1";
+    positionGlider(viewToggle, glider, activeBtn, immediate);
 }
 
-function updateWishlistGlider() {
+function updateWishlistGlider(immediate = false) {
     const wishlistToggle = document.getElementById("wishlistFilterToggle");
     const glider = document.getElementById("wishlistLiquidGlider");
     const activeBtn = wishlistToggle ? wishlistToggle.querySelector(".wishlist-filter-btn.active") : null;
-    if (!wishlistToggle || !glider || !activeBtn) return;
-
-    const containerRect = wishlistToggle.getBoundingClientRect();
-    const btnRect = activeBtn.getBoundingClientRect();
-
-    const left = btnRect.left - containerRect.left;
-    const width = btnRect.width;
-
-    glider.style.transform = `translateX(${left}px)`;
-    glider.style.width = `${width}px`;
-    glider.style.opacity = "1";
+    positionGlider(wishlistToggle, glider, activeBtn, immediate);
 }
 
-function updateAllGliders() {
+function updateAllGliders(immediate = false) {
+    const shouldBeImmediate = immediate === true;
     requestAnimationFrame(() => {
-        updateTabsGlider();
-        updateViewModeGlider();
-        updateWishlistGlider();
+        updateTabsGlider(shouldBeImmediate);
+        updateViewModeGlider(shouldBeImmediate);
+        updateWishlistGlider(shouldBeImmediate);
     });
 }
 
@@ -3352,8 +3356,22 @@ initLiquidGlassDropdowns();
 setupStatusDropdownEvents();
 
 // Initialisation des gliders liquide glace sous les boutons (switch fluide)
-window.addEventListener("resize", updateAllGliders);
-setTimeout(updateAllGliders, 80);
+window.addEventListener("resize", () => updateAllGliders());
+if (window.ResizeObserver) {
+    const gliderObserver = new ResizeObserver(() => {
+        updateAllGliders();
+    });
+    const tabsContainer = document.querySelector(".collection-tabs");
+    const viewToggle = document.getElementById("viewModeToggle");
+    const wishlistToggle = document.getElementById("wishlistFilterToggle");
+    if (tabsContainer) gliderObserver.observe(tabsContainer);
+    if (viewToggle) gliderObserver.observe(viewToggle);
+    if (wishlistToggle) gliderObserver.observe(wishlistToggle);
+}
+if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(() => updateAllGliders());
+}
+updateAllGliders(true);
 
 // Wishlist filter button listeners
 [filterWishlistAll, filterWishlistGames, filterWishlistConsoles].forEach(btn => {
