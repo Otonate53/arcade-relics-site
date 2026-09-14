@@ -6,6 +6,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>Mon compte — Arcade Relics</title>
+    <script>
+        // Masquer le nom de page dans la barre URL pour n'afficher que le nom du site
+        try {
+            if (window.history && window.history.replaceState) {
+                window.history.replaceState(null, "", "/");
+            }
+        } catch (e) {}
+    </script>
     <meta name="description"
         content="Espace personnel Arcade Relics : Consultez votre collection de jeux rétro, consoles et wishlist synchronisés en direct avec votre application.">
 
@@ -36,12 +44,12 @@
     <!-- Navigation Bar -->
     <header class="account-navbar">
         <div class="container account-nav-inner">
-            <a class="brand brand-header-logo" href="index.html" aria-label="Retour au site Arcade Relics">
+            <a class="brand brand-header-logo" href="index.html" onclick="sessionStorage.setItem('arcade_relics_view_home', 'true')" aria-label="Retour au site Arcade Relics">
                 <img src="assets/img/logo-arcade-relics.png?v=5" alt="Arcade Relics" class="header-logo-image">
             </a>
 
             <div class="account-user-actions">
-                <a href="index.html" class="button button-secondary" style="padding: 8px 16px; font-size: 0.85rem;">
+                <a href="index.html" class="button button-secondary" onclick="sessionStorage.setItem('arcade_relics_view_home', 'true')" style="padding: 8px 16px; font-size: 0.85rem;">
                     <span>← Accueil</span>
                 </a>
 

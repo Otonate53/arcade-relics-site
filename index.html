@@ -4,6 +4,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script>
+        // Si l'utilisateur est connecté et actualise sa collection (F5), rester sur la collection
+        try {
+            if (localStorage.getItem("arcade_relics_logged_in") === "true" && 
+                sessionStorage.getItem("arcade_relics_view_home") !== "true") {
+                window.location.replace("compte.html");
+            }
+        } catch(e) {}
+    </script>
     <meta name="description"
         content="Arcade Relics, l'application Android ultime pour gérer et sublimer votre collection de jeux vidéo, consoles et wishlist.">
     <meta name="theme-color" content="#06060d">
@@ -91,12 +100,14 @@
                     if (btn) {
                         btn.classList.add("logged-in");
                         btn.href = "compte.html";
+                        btn.onclick = function() { sessionStorage.removeItem("arcade_relics_view_home"); };
                         btn.setAttribute("aria-label", "Accéder à ma collection");
                         btn.innerHTML = '<span style="width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);display:inline-block;"></span><span class="nav-login-label">Ma Collection</span>';
                     }
                     if (mBtn) {
                         mBtn.classList.add("logged-in");
                         mBtn.href = "compte.html";
+                        mBtn.onclick = function() { sessionStorage.removeItem("arcade_relics_view_home"); };
                         mBtn.innerHTML = '<span style="width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);display:inline-block;"></span><span>Ma Collection</span>';
                     }
                 }

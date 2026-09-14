@@ -3457,6 +3457,7 @@ if (profileLogoutBtn) {
             localStorage.removeItem("arcade_relics_user_email");
             localStorage.removeItem("arcade_relics_drive_token");
             sessionStorage.removeItem("arcade_relics_drive_token");
+            sessionStorage.removeItem("arcade_relics_view_home");
             await clearCacheDB();
             await signOut(auth);
             window.location.href = "index.html";
@@ -3482,6 +3483,7 @@ if (logoutBtn) {
             localStorage.removeItem("arcade_relics_user_email");
             localStorage.removeItem("arcade_relics_drive_token");
             sessionStorage.removeItem("arcade_relics_drive_token");
+            sessionStorage.removeItem("arcade_relics_view_home");
             await clearCacheDB();
             await signOut(auth);
             window.location.href = "index.html";

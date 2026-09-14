@@ -95,6 +95,7 @@ if (googleLoginBtn) {
                     user.uid
                 );
 
+                sessionStorage.removeItem("arcade_relics_view_home");
                 window.location.href = "compte.html";
 
             } catch (error) {
@@ -139,6 +140,7 @@ onAuthStateChanged(
             if (navLoginBtn) {
                 navLoginBtn.classList.add("logged-in");
                 navLoginBtn.href = "compte.html";
+                navLoginBtn.onclick = () => sessionStorage.removeItem("arcade_relics_view_home");
                 navLoginBtn.setAttribute("aria-label", "Accéder à ma collection");
                 navLoginBtn.innerHTML = `
                     <span style="width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);display:inline-block;"></span>
@@ -148,6 +150,7 @@ onAuthStateChanged(
             if (navLinkMobileLogin) {
                 navLinkMobileLogin.classList.add("logged-in");
                 navLinkMobileLogin.href = "compte.html";
+                navLinkMobileLogin.onclick = () => sessionStorage.removeItem("arcade_relics_view_home");
                 navLinkMobileLogin.innerHTML = `
                     <span style="width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);display:inline-block;"></span>
                     <span>Ma Collection</span>
