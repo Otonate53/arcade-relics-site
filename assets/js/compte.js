@@ -3104,8 +3104,53 @@ window.addEventListener("resize", () => {
     }, 150);
 });
 
+// Animation de transition Liquide Glace (switch droite à gauche / gauche à droite)
+function triggerLiquidGlaceSwitch(direction = "left") {
+    const wrapper = document.getElementById("collectionViewsWrapper");
+    const sheen = document.getElementById("liquidGlaceSheen");
+    if (!wrapper) return;
+
+    let target = null;
+    if (currentTab === "profile") {
+        target = document.getElementById("profileContent");
+    } else if (emptyTabState && emptyTabState.style.display !== "none") {
+        target = emptyTabState;
+    } else {
+        target = collectionList;
+    }
+
+    if (target) {
+        target.classList.remove("animate-liquid-slide-left", "animate-liquid-slide-right");
+        // Force reflow pour redémarrer l'animation de manière fluide
+        void target.offsetWidth;
+        const animClass = (direction === "right") ? "animate-liquid-slide-right" : "animate-liquid-slide-left";
+        target.classList.add(animClass);
+
+        const cleanUp = () => {
+            target.classList.remove("animate-liquid-slide-left", "animate-liquid-slide-right");
+        };
+        target.addEventListener("animationend", cleanUp, { once: true });
+        setTimeout(cleanUp, 520);
+    }
+
+    if (sheen) {
+        sheen.classList.remove("sheen-active-left", "sheen-active-right");
+        void sheen.offsetWidth;
+        const sheenClass = (direction === "right") ? "sheen-active-right" : "sheen-active-left";
+        sheen.classList.add(sheenClass);
+
+        const cleanUpSheen = () => {
+            sheen.classList.remove("sheen-active-left", "sheen-active-right");
+        };
+        sheen.addEventListener("animationend", cleanUpSheen, { once: true });
+        setTimeout(cleanUpSheen, 550);
+    }
+}
+
 // View Mode Handler
 function setViewMode(mode) {
+    if (mode === currentViewMode) return;
+    const direction = (mode === "shelf") ? "left" : "right";
     currentViewMode = mode;
     try {
         localStorage.setItem("arcade_relics_view_mode", mode);
@@ -3121,6 +3166,7 @@ function setViewMode(mode) {
     }
 
     renderCurrentView();
+    triggerLiquidGlaceSwitch(direction);
 }
 
 if (viewModeGrid) viewModeGrid.addEventListener("click", () => setViewMode("grid"));
@@ -3229,6 +3275,13 @@ function setupStatusDropdownEvents() {
 
 // Tab Click Handlers
 function switchTab(tabName) {
+    if (tabName === currentTab) return;
+
+    const tabOrder = { games: 0, consoles: 1, wishlist: 2, profile: 3 };
+    const prevIndex = tabOrder[currentTab] ?? 0;
+    const newIndex = tabOrder[tabName] ?? 0;
+    const direction = (newIndex >= prevIndex) ? "left" : "right";
+
     currentTab = tabName;
     closeAllLiquidDropdowns();
 
@@ -3256,6 +3309,7 @@ function switchTab(tabName) {
     }
 
     renderCurrentView();
+    triggerLiquidGlaceSwitch(direction);
 }
 
 if (tabGames) tabGames.addEventListener("click", () => switchTab("games"));

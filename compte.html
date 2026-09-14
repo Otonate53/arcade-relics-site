@@ -267,88 +267,93 @@
                     </div>
                 </div>
 
-                <!-- Profile Tab & Dashboard Content -->
-                <div id="profileContent" style="display: none;">
-                    <div class="profile-dashboard-card">
-                        <div class="profile-header-banner">
-                            <div class="profile-avatar-wrap">👤</div>
-                            <div class="profile-user-info">
-                                <h2 class="profile-title" id="profileEmail">Chargement...</h2>
-                                <div class="profile-status-tags">
-                                    <span class="modal-badge modal-badge-green">● Connecté avec Google</span>
-                                    <span class="modal-badge modal-badge-cyan">☁️ Sync Cloud Active</span>
-                                </div>
-                            </div>
-                        </div>
+                <!-- Views Wrapper with Liquide Glace Switch Animation -->
+                <div class="collection-views-wrapper" id="collectionViewsWrapper">
+                    <div class="liquid-glace-sheen" id="liquidGlaceSheen" aria-hidden="true"></div>
 
-                        <div class="modal-section-title" style="margin-top: 28px;">
-                            📊 Tableau de bord de votre collection
-                        </div>
-
-                        <!-- Stats Dashboard moved here from top of site -->
-                        <div class="stats-cards-grid" style="margin-top: 14px;">
-                            <div class="stat-box">
-                                <div class="stat-box-icon" style="color: var(--cyan);">🎮</div>
-                                <div>
-                                    <div class="stat-box-num" id="gamesCount">0</div>
-                                    <div class="stat-box-label">Jeux possédés</div>
+                    <!-- Profile Tab & Dashboard Content -->
+                    <div id="profileContent" style="display: none;">
+                        <div class="profile-dashboard-card">
+                            <div class="profile-header-banner">
+                                <div class="profile-avatar-wrap">👤</div>
+                                <div class="profile-user-info">
+                                    <h2 class="profile-title" id="profileEmail">Chargement...</h2>
+                                    <div class="profile-status-tags">
+                                        <span class="modal-badge modal-badge-green">● Connecté avec Google</span>
+                                        <span class="modal-badge modal-badge-cyan">☁️ Sync Cloud Active</span>
+                                    </div>
                                 </div>
                             </div>
 
-                            <div class="stat-box">
-                                <div class="stat-box-icon" style="color: var(--pink);">🕹️</div>
-                                <div>
-                                    <div class="stat-box-num" id="consolesCount">0</div>
-                                    <div class="stat-box-label">Consoles</div>
+                            <div class="modal-section-title" style="margin-top: 28px;">
+                                📊 Tableau de bord de votre collection
+                            </div>
+
+                            <!-- Stats Dashboard moved here from top of site -->
+                            <div class="stats-cards-grid" style="margin-top: 14px;">
+                                <div class="stat-box">
+                                    <div class="stat-box-icon" style="color: var(--cyan);">🎮</div>
+                                    <div>
+                                        <div class="stat-box-num" id="gamesCount">0</div>
+                                        <div class="stat-box-label">Jeux possédés</div>
+                                    </div>
+                                </div>
+
+                                <div class="stat-box">
+                                    <div class="stat-box-icon" style="color: var(--pink);">🕹️</div>
+                                    <div>
+                                        <div class="stat-box-num" id="consolesCount">0</div>
+                                        <div class="stat-box-label">Consoles</div>
+                                    </div>
+                                </div>
+
+                                <div class="stat-box">
+                                    <div class="stat-box-icon" style="color: var(--yellow);">⭐</div>
+                                    <div>
+                                        <div class="stat-box-num" id="wishlistCount">0</div>
+                                        <div class="stat-box-label">En Wishlist</div>
+                                    </div>
+                                </div>
+
+                                <div class="stat-box">
+                                    <div class="stat-box-icon" style="color: var(--green);">🏆</div>
+                                    <div>
+                                        <div class="stat-box-num" id="finishedCount">0</div>
+                                        <div class="stat-box-label">Jeux terminés</div>
+                                    </div>
+                                </div>
+
+                                <div class="stat-box">
+                                    <div class="stat-box-icon" style="color: #c084fc;">⏳</div>
+                                    <div>
+                                        <div class="stat-box-num" id="backlogCount">0</div>
+                                        <div class="stat-box-label">Pile à jouer (Backlog)</div>
+                                    </div>
                                 </div>
                             </div>
 
-                            <div class="stat-box">
-                                <div class="stat-box-icon" style="color: var(--yellow);">⭐</div>
-                                <div>
-                                    <div class="stat-box-num" id="wishlistCount">0</div>
-                                    <div class="stat-box-label">En Wishlist</div>
-                                </div>
+                            <div style="margin-top: 28px; display: flex; gap: 12px; flex-wrap: wrap;">
+                                <button type="button" class="button button-secondary" id="profileLogoutBtn">
+                                    Se déconnecter
+                                </button>
+                                <a href="index.html" class="button button-primary">
+                                    Retour à l'accueil
+                                </a>
                             </div>
-
-                            <div class="stat-box">
-                                <div class="stat-box-icon" style="color: var(--green);">🏆</div>
-                                <div>
-                                    <div class="stat-box-num" id="finishedCount">0</div>
-                                    <div class="stat-box-label">Jeux terminés</div>
-                                </div>
-                            </div>
-
-                            <div class="stat-box">
-                                <div class="stat-box-icon" style="color: #c084fc;">⏳</div>
-                                <div>
-                                    <div class="stat-box-num" id="backlogCount">0</div>
-                                    <div class="stat-box-label">Pile à jouer (Backlog)</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div style="margin-top: 28px; display: flex; gap: 12px; flex-wrap: wrap;">
-                            <button type="button" class="button button-secondary" id="profileLogoutBtn">
-                                Se déconnecter
-                            </button>
-                            <a href="index.html" class="button button-primary">
-                                Retour à l'accueil
-                            </a>
                         </div>
                     </div>
-                </div>
 
-                <!-- Dynamic Items Grid -->
-                <div class="items-grid" id="collectionList">
-                    <!-- Cards will be dynamically injected here by compte.js -->
-                </div>
+                    <!-- Dynamic Items Grid -->
+                    <div class="items-grid" id="collectionList">
+                        <!-- Cards will be dynamically injected here by compte.js -->
+                    </div>
 
-                <!-- Empty tab state -->
-                <div id="emptyTabState" class="state-container" style="display: none;">
-                    <div class="empty-icon">🎮</div>
-                    <h3 class="empty-title">Aucun élément trouvé</h3>
-                    <p class="empty-text">Aucun jeu ou console ne correspond à votre recherche dans cet onglet.</p>
+                    <!-- Empty tab state -->
+                    <div id="emptyTabState" class="state-container" style="display: none;">
+                        <div class="empty-icon">🎮</div>
+                        <h3 class="empty-title">Aucun élément trouvé</h3>
+                        <p class="empty-text">Aucun jeu ou console ne correspond à votre recherche dans cet onglet.</p>
+                    </div>
                 </div>
             </div>
         </div>

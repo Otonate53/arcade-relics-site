@@ -167,45 +167,69 @@
 .collection-tabs {
     display: flex;
     align-items: center;
-    gap: 8px;
-    background: rgba(255, 255, 255, 0.04);
-    padding: 4px;
+    gap: 6px;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%), rgba(13, 20, 36, 0.65);
+    padding: 5px;
     border-radius: var(--radius-pill);
-    border: 1px solid var(--border);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-top: 1px solid rgba(255, 255, 255, 0.42);
+    box-shadow: 
+        inset 0 1px 1px 0 rgba(255, 255, 255, 0.25),
+        0 4px 18px rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(20px) saturate(190%);
+    -webkit-backdrop-filter: blur(20px) saturate(190%);
 }
 
 .tab-button {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    padding: 9px 18px;
+    padding: 8px 18px;
     border-radius: var(--radius-pill);
     font-family: var(--font-display);
-    font-size: 0.9rem;
+    font-size: 0.88rem;
     font-weight: 600;
-    color: var(--text-muted);
+    color: #94a3b8;
     background: transparent;
-    border: none;
+    border: 1px solid transparent;
     cursor: pointer;
-    transition: all var(--transition-fast);
+    position: relative;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .tab-button:hover {
     color: #ffffff;
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.15);
+    transform: translateY(-1px);
 }
 
 .tab-button.active {
-    background: linear-gradient(135deg, var(--cyan) 0%, #0fb5ff 100%);
-    color: #06060d;
-    box-shadow: 0 4px 15px rgba(38, 230, 255, 0.35);
+    background: linear-gradient(135deg, rgba(38, 230, 255, 0.28) 0%, rgba(14, 165, 233, 0.12) 100%), rgba(255, 255, 255, 0.06);
+    color: #ffffff;
+    border: 1px solid rgba(38, 230, 255, 0.55);
+    border-top: 1px solid rgba(255, 255, 255, 0.75);
+    box-shadow: 
+        inset 0 1px 1px 0 rgba(255, 255, 255, 0.50),
+        0 4px 18px rgba(38, 230, 255, 0.30),
+        0 0 14px rgba(38, 230, 255, 0.22);
+    text-shadow: 0 0 10px rgba(38, 230, 255, 0.5);
 }
 
 .tab-badge {
-    padding: 2px 7px;
+    padding: 2px 8px;
     border-radius: var(--radius-pill);
     font-size: 0.75rem;
-    background: rgba(0, 0, 0, 0.25);
+    background: rgba(0, 0, 0, 0.35);
     color: inherit;
+    font-weight: 700;
+    transition: all 0.25s ease;
+}
+
+.tab-button.active .tab-badge {
+    background: rgba(38, 230, 255, 0.25);
+    color: var(--cyan);
+    box-shadow: 0 0 8px rgba(38, 230, 255, 0.3);
 }
 
 .search-box-wrap {
@@ -919,16 +943,22 @@
 }
 
 /* ==========================================================================
-   VIEW MODE TOGGLE (Grille vs Étagère)
+   VIEW MODE TOGGLE (Grille vs Étagère - Liquide Glace)
    ========================================================================== */
 .view-mode-toggle {
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    background: rgba(255, 255, 255, 0.04);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%), rgba(13, 20, 36, 0.65);
     padding: 4px;
     border-radius: var(--radius-pill);
-    border: 1px solid var(--border);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-top: 1px solid rgba(255, 255, 255, 0.42);
+    box-shadow: 
+        inset 0 1px 1px 0 rgba(255, 255, 255, 0.25),
+        0 4px 16px rgba(0, 0, 0, 0.25);
+    backdrop-filter: blur(18px) saturate(190%);
+    -webkit-backdrop-filter: blur(18px) saturate(190%);
 }
 
 .view-toggle-btn {
@@ -940,11 +970,11 @@
     font-family: var(--font-display);
     font-size: 0.82rem;
     font-weight: 600;
-    color: var(--text-muted);
+    color: #94a3b8;
     background: transparent;
-    border: none;
+    border: 1px solid transparent;
     cursor: pointer;
-    transition: all var(--transition-fast);
+    transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .view-toggle-btn svg {
@@ -954,14 +984,18 @@
 
 .view-toggle-btn:hover {
     color: #ffffff;
-    background: rgba(255, 255, 255, 0.06);
+    background: rgba(255, 255, 255, 0.08);
 }
 
 .view-toggle-btn.active {
-    background: rgba(38, 230, 255, 0.15);
-    color: var(--cyan);
-    border: 1px solid rgba(38, 230, 255, 0.4);
-    box-shadow: 0 0 14px rgba(38, 230, 255, 0.25);
+    background: linear-gradient(135deg, rgba(38, 230, 255, 0.26) 0%, rgba(14, 165, 233, 0.12) 100%), rgba(255, 255, 255, 0.06);
+    color: #ffffff;
+    border: 1px solid rgba(38, 230, 255, 0.55);
+    border-top: 1px solid rgba(255, 255, 255, 0.75);
+    box-shadow: 
+        inset 0 1px 1px 0 rgba(255, 255, 255, 0.45),
+        0 4px 16px rgba(38, 230, 255, 0.30),
+        0 0 12px rgba(38, 230, 255, 0.20);
 }
 
 /* ==========================================================================
@@ -1297,17 +1331,22 @@
 }
 
 /* ==========================================================================
-   WISHLIST TYPE FILTER (Tous / Jeux / Consoles)
+   WISHLIST TYPE FILTER (Tous / Jeux / Consoles - Liquide Glace)
    ========================================================================== */
 .wishlist-filter-toggle {
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    background: rgba(255, 255, 255, 0.04);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%), rgba(13, 20, 36, 0.65);
     padding: 4px;
     border-radius: var(--radius-pill);
-    border: 1px solid var(--border);
-    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-top: 1px solid rgba(255, 255, 255, 0.42);
+    box-shadow: 
+        inset 0 1px 1px 0 rgba(255, 255, 255, 0.25),
+        0 4px 16px rgba(0, 0, 0, 0.25);
+    backdrop-filter: blur(18px) saturate(190%);
+    -webkit-backdrop-filter: blur(18px) saturate(190%);
 }
 
 .wishlist-filter-btn {
@@ -1319,11 +1358,11 @@
     font-family: var(--font-display);
     font-size: 0.82rem;
     font-weight: 600;
-    color: var(--text-muted);
+    color: #94a3b8;
     background: transparent;
     border: 1px solid transparent;
     cursor: pointer;
-    transition: all var(--transition-fast);
+    transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .wishlist-filter-btn .filter-count {
@@ -1337,24 +1376,28 @@
     font-weight: 700;
     background: rgba(255, 255, 255, 0.08);
     color: var(--text-dim);
-    transition: all var(--transition-fast);
+    transition: all 0.28s ease;
 }
 
 .wishlist-filter-btn:hover {
     color: #ffffff;
-    background: rgba(255, 255, 255, 0.06);
+    background: rgba(255, 255, 255, 0.08);
 }
 
 .wishlist-filter-btn.active {
-    background: rgba(255, 204, 0, 0.15);
-    color: var(--yellow);
-    border: 1px solid rgba(255, 204, 0, 0.4);
-    box-shadow: 0 0 14px rgba(255, 204, 0, 0.25);
+    background: linear-gradient(135deg, rgba(255, 204, 0, 0.25) 0%, rgba(245, 158, 11, 0.12) 100%), rgba(255, 255, 255, 0.06);
+    color: #ffffff;
+    border: 1px solid rgba(255, 204, 0, 0.55);
+    border-top: 1px solid rgba(255, 255, 255, 0.75);
+    box-shadow: 
+        inset 0 1px 1px 0 rgba(255, 255, 255, 0.45),
+        0 4px 16px rgba(255, 204, 0, 0.30),
+        0 0 12px rgba(255, 204, 0, 0.20);
 }
 
 .wishlist-filter-btn.active .filter-count {
-    background: rgba(255, 204, 0, 0.3);
-    color: #ffffff;
+    background: rgba(255, 204, 0, 0.25);
+    color: #ffd700;
 }
 
 @media (max-width: 768px) {
@@ -1370,6 +1413,127 @@
         padding: 6px 10px;
         font-size: 0.78rem;
     }
+}
+
+/* ==========================================================================
+   COLLECTION VIEWS WRAPPER & LIQUIDE GLACE SWITCH ANIMATION
+   ========================================================================== */
+.collection-views-wrapper {
+    position: relative;
+    width: 100%;
+    min-height: 420px;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+}
+
+/* Voile de brillance liquide glace (Sheen) qui balaie lors du switch */
+.liquid-glace-sheen {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 25;
+    opacity: 0;
+    background: linear-gradient(
+        105deg,
+        transparent 15%,
+        rgba(255, 255, 255, 0.08) 35%,
+        rgba(38, 230, 255, 0.30) 48%,
+        rgba(255, 255, 255, 0.40) 52%,
+        rgba(38, 230, 255, 0.25) 58%,
+        rgba(255, 255, 255, 0.08) 68%,
+        transparent 85%
+    );
+    background-size: 250% 100%;
+    backdrop-filter: blur(12px) saturate(200%);
+    -webkit-backdrop-filter: blur(12px) saturate(200%);
+}
+
+/* Animations de balayage de la brillance liquide */
+@keyframes liquidSheenSweepLeft {
+    0% {
+        opacity: 0;
+        background-position: 160% 0;
+    }
+    20% {
+        opacity: 0.9;
+    }
+    60% {
+        opacity: 0.7;
+    }
+    100% {
+        opacity: 0;
+        background-position: -60% 0;
+    }
+}
+
+@keyframes liquidSheenSweepRight {
+    0% {
+        opacity: 0;
+        background-position: -60% 0;
+    }
+    20% {
+        opacity: 0.9;
+    }
+    60% {
+        opacity: 0.7;
+    }
+    100% {
+        opacity: 0;
+        background-position: 160% 0;
+    }
+}
+
+.sheen-active-left {
+    animation: liquidSheenSweepLeft 0.52s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+}
+
+.sheen-active-right {
+    animation: liquidSheenSweepRight 0.52s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+}
+
+/* Animations de transition du contenu (Switch Droite à Gauche / Gauche à Droite) */
+@keyframes liquidSlideInFromRight {
+    0% {
+        opacity: 0;
+        transform: translateX(48px) scale(0.98);
+        filter: blur(12px) brightness(1.25);
+    }
+    40% {
+        opacity: 0.7;
+        filter: blur(6px) brightness(1.15);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+        filter: blur(0px) brightness(1);
+    }
+}
+
+@keyframes liquidSlideInFromLeft {
+    0% {
+        opacity: 0;
+        transform: translateX(-48px) scale(0.98);
+        filter: blur(12px) brightness(1.25);
+    }
+    40% {
+        opacity: 0.7;
+        filter: blur(6px) brightness(1.15);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+        filter: blur(0px) brightness(1);
+    }
+}
+
+.animate-liquid-slide-left {
+    animation: liquidSlideInFromRight 0.48s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+    will-change: transform, opacity, filter;
+}
+
+.animate-liquid-slide-right {
+    animation: liquidSlideInFromLeft 0.48s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+    will-change: transform, opacity, filter;
 }
 
 /* ==========================================================================
