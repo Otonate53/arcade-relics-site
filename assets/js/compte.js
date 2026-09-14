@@ -1086,6 +1086,14 @@ const modalAmbientAura = document.getElementById("modalAmbientAura");
 const gamesFiltersWrap = document.getElementById("gamesFiltersWrap");
 const gamesConsoleFilter = document.getElementById("gamesConsoleFilter");
 const gamesStatusFilter = document.getElementById("gamesStatusFilter");
+const dropdownConsole = document.getElementById("dropdownConsole");
+const triggerConsoleFilter = document.getElementById("triggerConsoleFilter");
+const labelConsoleFilter = document.getElementById("labelConsoleFilter");
+const menuConsoleFilter = document.getElementById("menuConsoleFilter");
+const dropdownStatus = document.getElementById("dropdownStatus");
+const triggerStatusFilter = document.getElementById("triggerStatusFilter");
+const labelStatusFilter = document.getElementById("labelStatusFilter");
+const menuStatusFilter = document.getElementById("menuStatusFilter");
 const wishlistFilterToggle = document.getElementById("wishlistFilterToggle");
 const filterWishlistAll = document.getElementById("filterWishlistAll");
 const filterWishlistGames = document.getElementById("filterWishlistGames");
@@ -1157,18 +1165,64 @@ function populateGamesConsoleFilter() {
 
     const sortedPlatforms = Array.from(consoleCounts.keys()).sort((a, b) => a.localeCompare(b, "fr"));
 
-    let html = `<option value="all">Toutes les consoles (${games.length})</option>`;
+    let selectHtml = `<option value="all">Toutes les consoles (${games.length})</option>`;
+    let menuHtml = `
+        <button type="button" class="liquid-option ${currentVal === "all" ? "active" : ""}" data-value="all">
+            <span class="option-indicator"></span>
+            <span class="option-text">Toutes les consoles</span>
+            <span class="option-count">${games.length}</span>
+            <svg class="option-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+        </button>
+    `;
+
     sortedPlatforms.forEach(p => {
         const count = consoleCounts.get(p);
-        html += `<option value="${escapeHtml(p)}">${escapeHtml(p)} (${count})</option>`;
+        const isActive = currentVal === p;
+        selectHtml += `<option value="${escapeHtml(p)}">${escapeHtml(p)} (${count})</option>`;
+        menuHtml += `
+            <button type="button" class="liquid-option ${isActive ? "active" : ""}" data-value="${escapeHtml(p)}">
+                <span class="option-indicator"></span>
+                <span class="option-text">${escapeHtml(p)}</span>
+                <span class="option-count">${count}</span>
+                <svg class="option-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+            </button>
+        `;
     });
 
-    gamesConsoleFilter.innerHTML = html;
+    gamesConsoleFilter.innerHTML = selectHtml;
 
     if (currentVal && (currentVal === "all" || consoleCounts.has(currentVal))) {
         gamesConsoleFilter.value = currentVal;
     } else {
         gamesConsoleFilter.value = "all";
+    }
+
+    if (labelConsoleFilter) {
+        labelConsoleFilter.textContent = (gamesConsoleFilter.value === "all") ? "Toutes les consoles" : gamesConsoleFilter.value;
+    }
+
+    if (menuConsoleFilter) {
+        menuConsoleFilter.innerHTML = menuHtml;
+        menuConsoleFilter.querySelectorAll(".liquid-option").forEach(btn => {
+            btn.addEventListener("click", () => {
+                const val = btn.dataset.value;
+                gamesConsoleFilter.value = val;
+
+                menuConsoleFilter.querySelectorAll(".liquid-option").forEach(b => b.classList.remove("active"));
+                btn.classList.add("active");
+
+                if (labelConsoleFilter) {
+                    labelConsoleFilter.textContent = (val === "all") ? "Toutes les consoles" : val;
+                }
+
+                if (dropdownConsole) {
+                    dropdownConsole.classList.remove("open");
+                    if (triggerConsoleFilter) triggerConsoleFilter.setAttribute("aria-expanded", "false");
+                }
+
+                renderCurrentView();
+            });
+        });
     }
 }
 
@@ -3083,9 +3137,100 @@ function escapeHtml(str) {
         .replace(/'/g, "&#039;");
 }
 
+// Dropdowns Liquide Glace Helpers & Animation
+function closeAllLiquidDropdowns() {
+    document.querySelectorAll(".liquid-glass-dropdown.open").forEach(dropdown => {
+        dropdown.classList.remove("open");
+        const trigger = dropdown.querySelector(".liquid-glass-trigger");
+        if (trigger) trigger.setAttribute("aria-expanded", "false");
+    });
+}
+
+function initLiquidGlassDropdowns() {
+    const dropdowns = document.querySelectorAll(".liquid-glass-dropdown");
+
+    dropdowns.forEach(dropdown => {
+        const trigger = dropdown.querySelector(".liquid-glass-trigger");
+        if (!trigger) return;
+
+        trigger.addEventListener("click", (e) => {
+            e.stopPropagation();
+            const isOpen = dropdown.classList.contains("open");
+
+            // Fermer les autres menus ouverts
+            dropdowns.forEach(d => {
+                if (d !== dropdown && d.classList.contains("open")) {
+                    d.classList.remove("open");
+                    const otherTrig = d.querySelector(".liquid-glass-trigger");
+                    if (otherTrig) otherTrig.setAttribute("aria-expanded", "false");
+                }
+            });
+
+            if (isOpen) {
+                dropdown.classList.remove("open");
+                trigger.setAttribute("aria-expanded", "false");
+            } else {
+                dropdown.classList.add("open");
+                trigger.setAttribute("aria-expanded", "true");
+            }
+        });
+
+        const menu = dropdown.querySelector(".liquid-glass-menu");
+        if (menu) {
+            menu.addEventListener("click", (e) => {
+                e.stopPropagation();
+            });
+        }
+    });
+
+    document.addEventListener("click", () => {
+        closeAllLiquidDropdowns();
+    });
+
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+            closeAllLiquidDropdowns();
+        }
+    });
+}
+
+function setupStatusDropdownEvents() {
+    if (!menuStatusFilter || !gamesStatusFilter) return;
+
+    const statusLabels = {
+        all: "Tous les jeux",
+        az: "Ordre A-Z",
+        backlog: "Pile à terminer",
+        playing: "En cours",
+        finished: "Terminés"
+    };
+
+    menuStatusFilter.querySelectorAll(".liquid-option").forEach(btn => {
+        btn.addEventListener("click", () => {
+            const val = btn.dataset.value;
+            gamesStatusFilter.value = val;
+
+            menuStatusFilter.querySelectorAll(".liquid-option").forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+
+            if (labelStatusFilter) {
+                labelStatusFilter.textContent = statusLabels[val] || val;
+            }
+
+            if (dropdownStatus) {
+                dropdownStatus.classList.remove("open");
+                if (triggerStatusFilter) triggerStatusFilter.setAttribute("aria-expanded", "false");
+            }
+
+            renderCurrentView();
+        });
+    });
+}
+
 // Tab Click Handlers
 function switchTab(tabName) {
     currentTab = tabName;
+    closeAllLiquidDropdowns();
 
     [tabGames, tabConsoles, tabWishlist, tabProfile].forEach(btn => {
         if (btn) btn.classList.remove("active");
@@ -3129,6 +3274,10 @@ if (gamesStatusFilter) {
         renderCurrentView();
     });
 }
+
+// Initialisation des dropdowns liquide glace
+initLiquidGlassDropdowns();
+setupStatusDropdownEvents();
 
 // Wishlist filter button listeners
 [filterWishlistAll, filterWishlistGames, filterWishlistConsoles].forEach(btn => {
