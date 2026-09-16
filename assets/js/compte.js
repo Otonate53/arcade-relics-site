@@ -1747,6 +1747,8 @@ function getGameCoverUrl(game) {
         game.picture ||
         ""
     );
+}
+
 function showToast(message, type = "info", duration = 4500) {
     let container = document.getElementById("appToastContainer");
     if (!container) {
