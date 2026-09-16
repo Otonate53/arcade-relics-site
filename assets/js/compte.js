@@ -1052,6 +1052,7 @@ const wishlistCount = document.getElementById("wishlistCount");
 const collectionList = document.getElementById("collectionList");
 const emptyTabState = document.getElementById("emptyTabState");
 const logoutBtn = document.getElementById("logoutBtn");
+const errorLogoutBtn = document.getElementById("errorLogoutBtn");
 
 const tabGames = document.getElementById("tabGames");
 const tabConsoles = document.getElementById("tabConsoles");
@@ -3450,22 +3451,29 @@ function renderWishlistConsolesBelowShelf(consolesList) {
     collectionList.appendChild(section);
 }
 
+// Unified Logout Handler
+async function logoutUser() {
+    try {
+        localStorage.removeItem("arcade_relics_logged_in");
+        localStorage.removeItem("arcade_relics_user_email");
+        localStorage.removeItem("arcade_relics_drive_token");
+        sessionStorage.removeItem("arcade_relics_drive_token");
+        sessionStorage.removeItem("arcade_relics_view_home");
+        await clearCacheDB();
+        await signOut(auth);
+        window.location.href = "index.html";
+    } catch (e) {
+        console.error("Erreur déconnexion :", e);
+        window.location.href = "index.html";
+    }
+}
+
 if (profileLogoutBtn) {
-    profileLogoutBtn.addEventListener("click", async () => {
-        try {
-            localStorage.removeItem("arcade_relics_logged_in");
-            localStorage.removeItem("arcade_relics_user_email");
-            localStorage.removeItem("arcade_relics_drive_token");
-            sessionStorage.removeItem("arcade_relics_drive_token");
-            sessionStorage.removeItem("arcade_relics_view_home");
-            await clearCacheDB();
-            await signOut(auth);
-            window.location.href = "index.html";
-        } catch (e) {
-            console.error("Erreur déconnexion :", e);
-            window.location.href = "index.html";
-        }
-    });
+    profileLogoutBtn.addEventListener("click", logoutUser);
+}
+
+if (errorLogoutBtn) {
+    errorLogoutBtn.addEventListener("click", logoutUser);
 }
 
 // Real-time Search Filter
@@ -3475,23 +3483,8 @@ if (collectionSearch) {
     });
 }
 
-// Logout Handler
 if (logoutBtn) {
-    logoutBtn.addEventListener("click", async () => {
-        try {
-            localStorage.removeItem("arcade_relics_logged_in");
-            localStorage.removeItem("arcade_relics_user_email");
-            localStorage.removeItem("arcade_relics_drive_token");
-            sessionStorage.removeItem("arcade_relics_drive_token");
-            sessionStorage.removeItem("arcade_relics_view_home");
-            await clearCacheDB();
-            await signOut(auth);
-            window.location.href = "index.html";
-        } catch (e) {
-            console.error("Erreur déconnexion :", e);
-            window.location.href = "index.html";
-        }
-    });
+    logoutBtn.addEventListener("click", logoutUser);
 }
 
 // Drive Sync Button Handler (Charger / Synchroniser les photos Google Drive)

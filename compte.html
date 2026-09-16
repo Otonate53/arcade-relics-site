@@ -44,9 +44,9 @@
     <!-- Navigation Bar -->
     <header class="account-navbar">
         <div class="container account-nav-inner">
-            <a class="brand brand-header-logo" href="index.html" onclick="sessionStorage.setItem('arcade_relics_view_home', 'true')" aria-label="Retour au site Arcade Relics">
+            <div class="brand brand-header-logo" aria-label="Arcade Relics">
                 <img src="assets/img/logo-arcade-relics.png?v=5" alt="Arcade Relics" class="header-logo-image">
-            </a>
+            </div>
 
             <!-- Barre de navigation des onglets -->
             <nav class="collection-tabs" id="accountNavigation" role="tablist" aria-label="Navigation de la collection">
@@ -68,21 +68,7 @@
                 </button>
             </nav>
 
-            <div class="account-user-actions">
-                <a href="index.html" class="button button-secondary" onclick="sessionStorage.setItem('arcade_relics_view_home', 'true')" style="padding: 8px 16px; font-size: 0.85rem;">
-                    <span>← Accueil</span>
-                </a>
-
-                <div class="user-email-badge" title="Connecté avec Google">
-                    <span class="user-status-dot"></span>
-                    <span id="userEmail">Chargement...</span>
-                </div>
-
-                <button type="button" class="button button-secondary btn-signout" id="logoutBtn"
-                    aria-label="Se déconnecter">
-                    <span>Déconnexion</span>
-                </button>
-            </div>
+            <div class="account-nav-spacer" aria-hidden="true"></div>
         </div>
     </header>
 
@@ -103,7 +89,9 @@
                 <h2 class="empty-title">Impossible de charger la collection</h2>
                 <p class="empty-text" id="errorDetail">Aucune sauvegarde cloud trouvée pour ce compte.</p>
                 <div style="margin-top: 16px; display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;">
-                    <a href="index.html" class="button button-secondary">Retour à l'accueil</a>
+                    <button type="button" class="button button-secondary btn-signout" id="errorLogoutBtn">
+                        <span>🚪 Se déconnecter</span>
+                    </button>
                     <button type="button" class="button button-primary"
                         onclick="window.location.reload();">Réessayer</button>
                 </div>
@@ -345,12 +333,14 @@
                             </div>
 
                             <div style="margin-top: 28px; display: flex; gap: 12px; flex-wrap: wrap;">
-                                <button type="button" class="button button-secondary" id="profileLogoutBtn">
-                                    Se déconnecter
+                                <button type="button" class="button button-secondary btn-signout" id="profileLogoutBtn" style="padding: 10px 22px;">
+                                    <svg class="icon" viewBox="0 0 24 24" style="width: 18px; height: 18px; stroke: currentColor;" aria-hidden="true">
+                                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                                        <polyline points="16 17 21 12 16 7"></polyline>
+                                        <line x1="21" y1="12" x2="9" y2="12"></line>
+                                    </svg>
+                                    <span>Se déconnecter</span>
                                 </button>
-                                <a href="index.html" class="button button-primary">
-                                    Retour à l'accueil
-                                </a>
                             </div>
                         </div>
                     </div>

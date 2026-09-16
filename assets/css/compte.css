@@ -34,50 +34,41 @@
     display: flex;
     align-items: center;
     flex-shrink: 0;
+    min-width: 170px;
+    cursor: default;
+    user-select: none;
 }
 
 .account-navbar .collection-tabs {
     flex-shrink: 0;
 }
 
-.account-user-actions {
-    display: flex;
-    align-items: center;
-    gap: 14px;
+.account-nav-spacer {
+    min-width: 170px;
     flex-shrink: 0;
 }
 
-.user-email-badge {
+.btn-signout {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    padding: 6px 14px;
-    border-radius: var(--radius-pill);
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid var(--border-light);
-    font-size: 0.85rem;
-    color: var(--text-primary);
-}
-
-.user-status-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--green);
-    box-shadow: 0 0 10px var(--green);
-}
-
-.btn-signout {
-    padding: 8px 16px;
-    font-size: 0.85rem;
+    padding: 10px 22px;
+    font-size: 0.92rem;
+    font-weight: 600;
     color: #ff6b8b;
-    border-color: rgba(255, 107, 139, 0.3);
+    background: rgba(255, 107, 139, 0.08);
+    border: 1px solid rgba(255, 107, 139, 0.3);
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .btn-signout:hover {
-    background: rgba(255, 107, 139, 0.12);
+    background: rgba(255, 107, 139, 0.18);
     border-color: #ff6b8b;
     color: #ffffff;
+    box-shadow: 0 0 16px rgba(255, 107, 139, 0.35);
+    transform: translateY(-1px);
 }
 
 /* Main Dashboard Layout */
@@ -515,44 +506,41 @@
         gap: 10px;
     }
 
+    .account-navbar .brand-header-logo,
+    .account-nav-spacer {
+        min-width: 140px;
+    }
+
     .account-navbar .tab-button {
         padding: 7px 12px;
         font-size: 0.82rem;
         gap: 6px;
     }
-
-    .user-email-badge {
-        max-width: 130px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-    }
 }
 
 @media (max-width: 768px) {
     .account-navbar {
-        padding: 8px 0;
+        padding: 10px 0;
     }
 
     .account-nav-inner {
         height: auto;
-        flex-wrap: wrap;
+        flex-direction: column;
         row-gap: 12px;
-        column-gap: 8px;
-        justify-content: space-between;
+        align-items: center;
+        justify-content: center;
     }
 
     .account-navbar .brand-header-logo {
-        order: 1;
+        min-width: 0;
+        margin: 0 auto;
     }
 
-    .account-user-actions {
-        order: 2;
-        gap: 8px;
+    .account-nav-spacer {
+        display: none;
     }
 
     .account-navbar .collection-tabs {
-        order: 3;
         width: 100%;
         justify-content: center;
         overflow-x: auto;
@@ -570,10 +558,6 @@
         padding: 6px 12px;
         font-size: 0.8rem;
         white-space: nowrap;
-    }
-
-    .user-email-badge {
-        display: none;
     }
 
     .collection-controls-bar {
