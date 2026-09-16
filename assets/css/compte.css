@@ -518,13 +518,14 @@
     }
 }
 
-/* Masquer la vue étagère et son sélecteur sur tablette et téléphone */
-@media (max-width: 1024px) {
+/* Masquer la vue étagère et son sélecteur sur iPad (portrait/paysage), tablettes et téléphones */
+@media (pointer: coarse), (hover: none), (max-width: 1366px) {
     .view-mode-toggle {
         display: none !important;
     }
 
-    .bookcase-cabinet {
+    .bookcase-cabinet,
+    .wishlist-shelf-consoles-section {
         display: none !important;
     }
 }

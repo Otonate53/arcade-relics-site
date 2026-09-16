@@ -1070,9 +1070,25 @@ const viewModeShelf = document.getElementById("viewModeShelf");
 // View Mode State ("grid" | "shelf")
 let currentViewMode = localStorage.getItem("arcade_relics_view_mode") || "grid";
 
-// Helper: Détection tablette et mobile (<= 1024px) où la vue étagère est désactivée
+// Helper: Détection robuste iPad (portrait et paysage), tablettes et téléphones où la vue étagère est désactivée
 function isMobileOrTablet() {
-    return window.matchMedia("(max-width: 1024px)").matches;
+    // 1. Détection iPadOS / iOS (sur iPadOS, Safari se présente avec MacIntel et maxTouchPoints >= 2)
+    const isIPad = (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) ||
+                   /iPad/i.test(navigator.userAgent) ||
+                   (/Macintosh/i.test(navigator.userAgent) && ('ontouchend' in document));
+
+    // 2. Détection mobile / tablette générale par User Agent
+    const isMobileUA = /iPhone|iPod|iPad|Android|webOS|BlackBerry|IEMobile|Opera Mini|Tablet|Silk|Kindle/i.test(navigator.userAgent);
+
+    // 3. Détection par écran tactile (pointer: coarse ou hover: none)
+    const isTouch = window.matchMedia("(pointer: coarse)").matches || 
+                    window.matchMedia("(hover: none)").matches ||
+                    (navigator.maxTouchPoints && navigator.maxTouchPoints > 0);
+
+    // 4. Détection par largeur d'écran (<= 1366px pour englober tous les modèles iPad en portrait et paysage)
+    const isTabletWidth = window.innerWidth <= 1366 || window.matchMedia("(max-width: 1366px)").matches;
+
+    return isIPad || isMobileUA || (isTouch && isTabletWidth) || window.innerWidth <= 1024;
 }
 
 function getEffectiveViewMode() {
