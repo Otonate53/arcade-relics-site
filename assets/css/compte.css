@@ -518,6 +518,17 @@
     }
 }
 
+/* Masquer la vue étagère et son sélecteur sur tablette et téléphone */
+@media (max-width: 1024px) {
+    .view-mode-toggle {
+        display: none !important;
+    }
+
+    .bookcase-cabinet {
+        display: none !important;
+    }
+}
+
 @media (max-width: 768px) {
     .account-navbar {
         padding: 10px 0;

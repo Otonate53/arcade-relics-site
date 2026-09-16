@@ -1070,6 +1070,15 @@ const viewModeShelf = document.getElementById("viewModeShelf");
 // View Mode State ("grid" | "shelf")
 let currentViewMode = localStorage.getItem("arcade_relics_view_mode") || "grid";
 
+// Helper: Détection tablette et mobile (<= 1024px) où la vue étagère est désactivée
+function isMobileOrTablet() {
+    return window.matchMedia("(max-width: 1024px)").matches;
+}
+
+function getEffectiveViewMode() {
+    return isMobileOrTablet() ? "grid" : currentViewMode;
+}
+
 // Profile Elements
 const profileContent = document.getElementById("profileContent");
 const profileEmail = document.getElementById("profileEmail");
@@ -2200,18 +2209,21 @@ function renderCurrentView() {
     if (profileContent) profileContent.style.display = "none";
     if (searchBoxWrap) searchBoxWrap.style.display = "flex";
 
-    // View mode toggle visible only for games and wishlist (when not strictly consoles)
+    const isMobileTablet = isMobileOrTablet();
+    const effectiveViewMode = isMobileTablet ? "grid" : currentViewMode;
+
+    // View mode toggle visible only on desktop (> 1024px) for games and wishlist (when not strictly consoles)
     if (viewModeToggle) {
-        const canShowShelf = currentTab === "games" || (currentTab === "wishlist" && wishlistFilter !== "consoles");
+        const canShowShelf = !isMobileTablet && (currentTab === "games" || (currentTab === "wishlist" && wishlistFilter !== "consoles"));
         viewModeToggle.style.display = canShowShelf ? "inline-flex" : "none";
     }
 
     // Sync toggle button active states
     if (viewModeGrid && viewModeShelf) {
-        viewModeGrid.classList.toggle("active", currentViewMode === "grid");
-        viewModeGrid.setAttribute("aria-pressed", String(currentViewMode === "grid"));
-        viewModeShelf.classList.toggle("active", currentViewMode === "shelf");
-        viewModeShelf.setAttribute("aria-pressed", String(currentViewMode === "shelf"));
+        viewModeGrid.classList.toggle("active", effectiveViewMode === "grid");
+        viewModeGrid.setAttribute("aria-pressed", String(effectiveViewMode === "grid"));
+        viewModeShelf.classList.toggle("active", effectiveViewMode === "shelf");
+        viewModeShelf.setAttribute("aria-pressed", String(effectiveViewMode === "shelf"));
         if (typeof updateViewModeGlider === "function") updateViewModeGlider();
     }
 
@@ -2274,7 +2286,7 @@ function renderCurrentView() {
         return;
     } else {
         if (emptyTabState) emptyTabState.style.display = "none";
-        const isShelfAllowed = currentViewMode === "shelf" && (currentTab === "games" || (currentTab === "wishlist" && wishlistFilter !== "consoles"));
+        const isShelfAllowed = effectiveViewMode === "shelf" && (currentTab === "games" || (currentTab === "wishlist" && wishlistFilter !== "consoles"));
         collectionList.style.display = isShelfAllowed ? "flex" : "grid";
     }
 
@@ -2326,7 +2338,7 @@ function renderCurrentView() {
 
             collectionList.appendChild(card);
         });
-    } else if (currentViewMode === "shelf") {
+    } else if (effectiveViewMode === "shelf") {
         // Shelf view (Tranches sur étagères de bibliothèque)
         const shelfItems = currentTab === "wishlist" ? itemsToRender.filter(it => !isConsoleItem(it)) : itemsToRender;
         renderShelfView(shelfItems);
@@ -3101,14 +3113,18 @@ function scheduleShelfRepack() {
 
 // Re-calcul automatique sur redimensionnement
 let shelfResizeDebounce = null;
+let lastMobileTabletState = isMobileOrTablet();
 window.addEventListener("resize", () => {
-    if (currentViewMode !== "shelf") return;
-    clearTimeout(shelfResizeDebounce);
-    shelfResizeDebounce = setTimeout(() => {
-        if (currentViewMode === "shelf") {
+    const currentMobileTablet = isMobileOrTablet();
+    const breakpointCrossed = currentMobileTablet !== lastMobileTabletState;
+    lastMobileTabletState = currentMobileTablet;
+
+    if (currentViewMode === "shelf" || breakpointCrossed) {
+        clearTimeout(shelfResizeDebounce);
+        shelfResizeDebounce = setTimeout(() => {
             renderCurrentView();
-        }
-    }, 150);
+        }, 150);
+    }
 });
 
 // Gliders Liquide Glace (Animation coulissante fluide sous les boutons)
@@ -3173,6 +3189,7 @@ function updateAllGliders(immediate = false) {
 
 // View Mode Handler
 function setViewMode(mode) {
+    if (isMobileOrTablet() && mode === "shelf") return;
     if (mode === currentViewMode) return;
     currentViewMode = mode;
     try {
@@ -3181,11 +3198,12 @@ function setViewMode(mode) {
         console.warn("Could not persist view mode:", e);
     }
 
+    const effectiveMode = getEffectiveViewMode();
     if (viewModeGrid && viewModeShelf) {
-        viewModeGrid.classList.toggle("active", mode === "grid");
-        viewModeGrid.setAttribute("aria-pressed", String(mode === "grid"));
-        viewModeShelf.classList.toggle("active", mode === "shelf");
-        viewModeShelf.setAttribute("aria-pressed", String(mode === "shelf"));
+        viewModeGrid.classList.toggle("active", effectiveMode === "grid");
+        viewModeGrid.setAttribute("aria-pressed", String(effectiveMode === "grid"));
+        viewModeShelf.classList.toggle("active", effectiveMode === "shelf");
+        viewModeShelf.setAttribute("aria-pressed", String(effectiveMode === "shelf"));
     }
 
     updateViewModeGlider();
