@@ -13,11 +13,18 @@ import {
 import {
     getFirestore,
     doc,
-    getDoc
+    getDoc,
+    setDoc,
+    updateDoc
 } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
 
 const db = getFirestore(app);
 const driveImageObjectUrls = [];
+
+let currentUid = null;
+let rawCloudData = null;
+let currentDriveZip = null;
+let currentDriveFileId = null;
 
 function parseBackupArray(value) {
 
@@ -699,6 +706,9 @@ async function loadGoogleDriveImages() {
             zipBuffer
         );
 
+    currentDriveZip = zip;
+    currentDriveFileId = backupFile.id;
+
     /*
      * Lecture du manifest.json du backup
      * pour récupérer toutes les métadonnées détaillées
@@ -1322,6 +1332,9 @@ onAuthStateChanged(auth, async (user) => {
                 user.uid
             );
 
+        currentUid = user.uid;
+        rawCloudData = data;
+
         processCollectionData(data);
 
         // 1. Tenter d'abord de charger immédiatement les photos depuis le cache local IndexedDB
@@ -1734,6 +1747,273 @@ function getGameCoverUrl(game) {
         game.picture ||
         ""
     );
+function showToast(message, type = "info", duration = 4500) {
+    let container = document.getElementById("appToastContainer");
+    if (!container) {
+        container = document.createElement("div");
+        container.id = "appToastContainer";
+        container.className = "toast-container";
+        document.body.appendChild(container);
+    }
+
+    const toast = document.createElement("div");
+    toast.className = `app-toast toast-${type}`;
+
+    let icon = "ℹ️";
+    if (type === "success") icon = "✓";
+    if (type === "error") icon = "⚠️";
+
+    toast.innerHTML = `
+        <span class="toast-icon">${icon}</span>
+        <div class="toast-message">${escapeHtml(message)}</div>
+    `;
+
+    container.appendChild(toast);
+
+    const removeToast = () => {
+        toast.style.opacity = "0";
+        toast.style.transform = "translateY(10px) scale(0.96)";
+        setTimeout(() => {
+            if (toast.parentNode) toast.remove();
+        }, 250);
+    };
+
+    toast.addEventListener("click", removeToast);
+
+    if (duration > 0) {
+        setTimeout(removeToast, duration);
+    }
+}
+
+async function moveItemFromWishlistToOwned(item, buttonEl = null) {
+    if (!item) return;
+
+    const isConsole = isConsoleItem(item);
+    const itemIdStr = String(item.id);
+    const title = item.title || item.name || item.titre || item.consoleName || (isConsole ? "Console" : "Jeu");
+
+    // Indicate loading state on trigger button if available
+    let originalButtonHtml = "";
+    if (buttonEl) {
+        originalButtonHtml = buttonEl.innerHTML;
+        buttonEl.disabled = true;
+        buttonEl.innerHTML = `<span class="btn-spinner"></span> Synchronisation Google...`;
+    }
+    showToast(`Déplacement de "${title}" vers votre collection...`, "info", 5000);
+
+    try {
+        const user = auth.currentUser;
+        if (!user) {
+            throw new Error("Vous devez être connecté avec votre compte Google.");
+        }
+
+        // 1. Prepare rawCloudData if not loaded yet
+        if (!rawCloudData) {
+            try {
+                rawCloudData = await loadCloudSnapshot(user.uid);
+            } catch {
+                rawCloudData = {
+                    owned: [],
+                    wishlist: [],
+                    items: [],
+                    consoles: []
+                };
+            }
+        }
+
+        // 2. Update Cloud Data structure
+        // Remove from wishlist array
+        if (Array.isArray(rawCloudData.wishlist)) {
+            rawCloudData.wishlist = rawCloudData.wishlist.filter(id => String(id) !== itemIdStr);
+        }
+
+        // Add to owned array
+        if (!Array.isArray(rawCloudData.owned)) {
+            rawCloudData.owned = [];
+        }
+        const ownedSet = new Set(rawCloudData.owned.map(id => String(id)));
+        if (!ownedSet.has(itemIdStr)) {
+            rawCloudData.owned.push(item.id != null ? item.id : itemIdStr);
+        }
+
+        // Update items array
+        if (!Array.isArray(rawCloudData.items)) {
+            rawCloudData.items = [];
+        }
+        const existingItemIndex = rawCloudData.items.findIndex(it => String(it.id) === itemIdStr);
+        if (existingItemIndex >= 0) {
+            rawCloudData.items[existingItemIndex] = {
+                ...rawCloudData.items[existingItemIndex],
+                ...item,
+                isWishlist: false,
+                wishlist: false,
+                status: (rawCloudData.items[existingItemIndex].status === "wishlist" || !rawCloudData.items[existingItemIndex].status) ? "a_jouer" : rawCloudData.items[existingItemIndex].status
+            };
+        } else if (!isConsole) {
+            rawCloudData.items.push({
+                ...item,
+                isWishlist: false,
+                wishlist: false,
+                status: "a_jouer"
+            });
+        }
+
+        // If console, handle console lists
+        if (isConsole) {
+            if (Array.isArray(rawCloudData.wishlistConsoles)) {
+                rawCloudData.wishlistConsoles = rawCloudData.wishlistConsoles.filter(c => String(c.id) !== itemIdStr);
+            }
+            if (Array.isArray(rawCloudData.wishlist_consoles)) {
+                rawCloudData.wishlist_consoles = rawCloudData.wishlist_consoles.filter(c => String(c.id) !== itemIdStr);
+            }
+            if (!Array.isArray(rawCloudData.consoles)) {
+                rawCloudData.consoles = [];
+            }
+            const existingConsoleIndex = rawCloudData.consoles.findIndex(c => String(c.id) === itemIdStr);
+            if (existingConsoleIndex >= 0) {
+                rawCloudData.consoles[existingConsoleIndex] = {
+                    ...rawCloudData.consoles[existingConsoleIndex],
+                    ...item,
+                    isWishlist: false,
+                    wishlist: false
+                };
+            } else {
+                rawCloudData.consoles.push({
+                    ...item,
+                    isWishlist: false,
+                    wishlist: false
+                });
+            }
+        }
+
+        rawCloudData.updatedAt = new Date().toISOString();
+
+        // 3. Persist to Firestore (Firebase Google Profile)
+        const docRef = doc(db, "publicCollections", user.uid);
+        await setDoc(docRef, rawCloudData, { merge: true });
+        console.log("Collection mise à jour sur Firestore pour l'utilisateur Google :", user.uid);
+
+        // 4. Update Google Drive backup zip & IndexedDB cache if available
+        const accessToken = sessionStorage.getItem("arcade_relics_drive_token") || localStorage.getItem("arcade_relics_drive_token");
+        if (accessToken && currentDriveZip && currentDriveFileId) {
+            try {
+                const manifestFile = currentDriveZip.file("manifest.json") || currentDriveZip.file("backup.json");
+                if (manifestFile) {
+                    const rawText = await manifestFile.async("string");
+                    const manifestJson = JSON.parse(rawText);
+                    const values = manifestJson.values || manifestJson;
+                    let manifestModified = false;
+
+                    const bItems = parseBackupArray(values.otr_items || values.items);
+                    const bItem = bItems.find(it => String(it.id) === itemIdStr);
+                    if (bItem) {
+                        bItem.is_wishlist = 0;
+                        bItem.is_owned = 1;
+                        bItem.status = "owned";
+                        manifestModified = true;
+                    }
+
+                    const bConsoles = parseBackupArray(values.otr_user_consoles || values.consoles);
+                    const bConsole = bConsoles.find(c => String(c.id) === itemIdStr);
+                    if (bConsole) {
+                        bConsole.is_wishlist = 0;
+                        bConsole.is_owned = 1;
+                        manifestModified = true;
+                    }
+
+                    if (manifestModified) {
+                        const updatedManifestStr = JSON.stringify(manifestJson);
+                        currentDriveZip.file(manifestFile.name, updatedManifestStr);
+                        await saveToCache([{ key: "__manifest_json__", val: updatedManifestStr }]);
+
+                        const updatedBlob = await currentDriveZip.generateAsync({ type: "blob", compression: "DEFLATE" });
+                        await fetch(`https://www.googleapis.com/upload/drive/v3/files/${currentDriveFileId}?uploadType=media`, {
+                            method: "PATCH",
+                            headers: {
+                                Authorization: `Bearer ${accessToken}`,
+                                "Content-Type": "application/zip"
+                            },
+                            body: updatedBlob
+                        });
+                        console.log("Fichier de backup Google Drive mis à jour avec succès !");
+                    }
+                }
+            } catch (driveSyncErr) {
+                console.warn("Mise à jour secondaire du backup Drive :", driveSyncErr);
+            }
+        }
+
+        // 5. Update local in-memory parsedData
+        if (!isConsole) {
+            parsedData.wishlistGames = (parsedData.wishlistGames || []).filter(g => String(g.id) !== itemIdStr);
+            const existsInOwned = (parsedData.ownedGames || []).some(g => String(g.id) === itemIdStr);
+            if (!existsInOwned) {
+                parsedData.ownedGames.unshift({
+                    ...item,
+                    isWishlist: false,
+                    wishlist: false,
+                    status: "a_jouer"
+                });
+            }
+            if (parsedData.backlogIds) {
+                parsedData.backlogIds.add(itemIdStr);
+            }
+        } else {
+            parsedData.wishlistGames = (parsedData.wishlistGames || []).filter(c => String(c.id) !== itemIdStr);
+            const existsInConsoles = (parsedData.consoles || []).some(c => String(c.id) === itemIdStr);
+            if (!existsInConsoles) {
+                parsedData.consoles.unshift({
+                    ...item,
+                    isWishlist: false,
+                    wishlist: false,
+                    isConsole: true
+                });
+            }
+        }
+
+        // 6. Update counts and badges
+        if (gamesCount) gamesCount.textContent = parsedData.ownedGames.length;
+        if (consolesCount) consolesCount.textContent = parsedData.consoles.length;
+        if (wishlistCount) wishlistCount.textContent = parsedData.wishlistGames.length;
+        if (badgeGames) badgeGames.textContent = parsedData.ownedGames.length;
+        if (badgeConsoles) badgeConsoles.textContent = parsedData.consoles.length;
+        if (badgeWishlist) badgeWishlist.textContent = parsedData.wishlistGames.length;
+        if (backlogCount && parsedData.backlogIds) backlogCount.textContent = parsedData.backlogIds.size;
+
+        updateWishlistFilterCounts();
+        populateGamesConsoleFilter();
+        updateAllGliders();
+
+        // 7. Close open modals
+        const gameModal = document.getElementById("gameDetailModal");
+        if (gameModal) {
+            gameModal.classList.remove("active");
+            setTimeout(() => gameModal.remove(), 250);
+        }
+        closeDetailModal();
+
+        // 8. Re-render the view
+        renderCurrentView();
+
+        // 9. Display success toast
+        showToast(
+            `"${title}" a été déplacé dans votre collection (${isConsole ? "Mes Consoles" : "Mes Jeux"}) et synchronisé sur votre profil Google !`,
+            "success",
+            4500
+        );
+
+    } catch (err) {
+        console.error("Erreur déplacement vers la collection :", err);
+        if (buttonEl && originalButtonHtml) {
+            buttonEl.disabled = false;
+            buttonEl.innerHTML = originalButtonHtml;
+        }
+        showToast(
+            `Erreur lors de la synchronisation : ${err.message || "Impossible de mettre à jour votre profil Google."}`,
+            "error",
+            5000
+        );
+    }
 }
 
 function openGameDetails(game, isWishlist = false) {
@@ -2125,6 +2405,19 @@ function openGameDetails(game, isWishlist = false) {
             : ""
         }
 
+                ${isWishlist ? `
+                    <div class="modal-actions-bar">
+                        <button type="button" class="btn-move-to-collection" id="btnMoveWishlistGame" data-game-id="${escapeHtml(String(game.id))}">
+                            <svg class="btn-action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                <polyline points="7 10 12 15 17 10"/>
+                                <line x1="12" y1="15" x2="12" y2="3"/>
+                            </svg>
+                            <span>Déplacer dans ma collection (Mes Jeux)</span>
+                        </button>
+                    </div>
+                ` : ""}
+
             </div>
 
         </div>
@@ -2168,6 +2461,12 @@ function openGameDetails(game, isWishlist = false) {
             closeModal
         );
 
+    const btnMove = modal.querySelector("#btnMoveWishlistGame");
+    if (btnMove) {
+        btnMove.addEventListener("click", async () => {
+            await moveItemFromWishlistToOwned(game, btnMove);
+        });
+    }
 
     modal.addEventListener(
         "click",
@@ -2339,8 +2638,27 @@ function renderCurrentView() {
                         <span class="platform-pill" style="color: var(--pink); border-color: rgba(255, 45, 164, 0.3); background: rgba(255, 45, 164, 0.1);" title="${escapeHtml(brand)}">${escapeHtml(brand)}</span>
                         <span class="status-indicator" style="color: ${isWishlist ? "var(--yellow)" : "var(--pink)"};">${isWishlist ? "⭐ Wishlist" : "🕹️ Console"}</span>
                     </div>
+                    ${isWishlist ? `
+                        <button type="button" class="card-btn-move-wishlist" title="Déplacer dans Mes Consoles" aria-label="Déplacer dans Mes Consoles">
+                            <svg class="btn-card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                <polyline points="7 10 12 15 17 10"/>
+                                <line x1="12" y1="15" x2="12" y2="3"/>
+                            </svg>
+                            <span>Déplacer dans mes consoles</span>
+                        </button>
+                    ` : ""}
                 </div>
             `;
+            if (isWishlist) {
+                const btnMove = card.querySelector(".card-btn-move-wishlist");
+                if (btnMove) {
+                    btnMove.addEventListener("click", (e) => {
+                        e.stopPropagation();
+                        moveItemFromWishlistToOwned(consoleItem, btnMove);
+                    });
+                }
+            }
             card.setAttribute("role", "button");
             card.setAttribute("tabindex", "0");
             card.setAttribute("aria-label", `Voir les détails de la console ${name}`);
@@ -2397,8 +2715,27 @@ function renderCurrentView() {
                         <span class="platform-pill" ${isConsole ? 'style="color: var(--pink); border-color: rgba(255, 45, 164, 0.3); background: rgba(255, 45, 164, 0.1);"' : ''} title="${escapeHtml(platform)}">${escapeHtml(platform)}</span>
                         <span class="status-indicator" style="color:${statusColor}">${statusLabel}</span>
                     </div>
+                    ${isWishlist ? `
+                        <button type="button" class="card-btn-move-wishlist" title="Déplacer dans ${isConsole ? 'Mes Consoles' : 'Mes Jeux'}" aria-label="Déplacer dans ${isConsole ? 'Mes Consoles' : 'Mes Jeux'}">
+                            <svg class="btn-card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                <polyline points="7 10 12 15 17 10"/>
+                                <line x1="12" y1="15" x2="12" y2="3"/>
+                            </svg>
+                            <span>Déplacer dans ${isConsole ? "mes consoles" : "mes jeux"}</span>
+                        </button>
+                    ` : ""}
                 </div>
             `;
+            if (isWishlist) {
+                const btnMove = card.querySelector(".card-btn-move-wishlist");
+                if (btnMove) {
+                    btnMove.addEventListener("click", (e) => {
+                        e.stopPropagation();
+                        moveItemFromWishlistToOwned(game, btnMove);
+                    });
+                }
+            }
 
             card.setAttribute("role", "button");
             card.setAttribute("tabindex", "0");
@@ -3570,6 +3907,14 @@ function openDetailModal(item, type) {
     }
 
     itemModalContent.innerHTML = generateDetailModalHtml(item, type);
+
+    const btnMove = itemModalContent.querySelector("#btnMoveWishlistDetail");
+    if (btnMove) {
+        btnMove.addEventListener("click", async () => {
+            await moveItemFromWishlistToOwned(item, btnMove);
+        });
+    }
+
     itemModalOverlay.classList.add("active");
     itemModalOverlay.setAttribute("aria-hidden", "false");
     document.body.style.overflow = "hidden";
@@ -3806,6 +4151,19 @@ function generateDetailModalHtml(item, type) {
         `
         : "";
 
+    const moveActionHtml = isWishlist ? `
+        <div class="modal-actions-bar">
+            <button type="button" class="btn-move-to-collection" id="btnMoveWishlistDetail" data-item-id="${escapeHtml(String(item.id))}">
+                <svg class="btn-action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="7 10 12 15 17 10"/>
+                    <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+                <span>Déplacer dans ma collection (${isConsole ? "Mes Consoles" : "Mes Jeux"})</span>
+            </button>
+        </div>
+    ` : "";
+
     return `
         <div class="modal-hero">
             <div class="modal-cover-wrap">
@@ -3825,6 +4183,7 @@ function generateDetailModalHtml(item, type) {
         ${statsGridHtml}
         ${commentHtml}
         ${extraGridHtml}
+        ${moveActionHtml}
     `;
 }
 

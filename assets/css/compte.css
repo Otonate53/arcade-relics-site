@@ -2222,3 +2222,189 @@
     color: var(--text-dim);
     margin-top: 2px;
 }
+
+/* ==========================================================================
+   WISHLIST MOVE TO COLLECTION ACTIONS & NOTIFICATIONS
+   ========================================================================== */
+.modal-actions-bar {
+    margin-top: 24px;
+    padding-top: 18px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: flex-end;
+}
+
+.btn-move-to-collection {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 13px 24px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #06060d;
+    background: linear-gradient(135deg, #00ffcc 0%, #00b4d8 100%);
+    border: none;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    box-shadow: 0 4px 18px rgba(0, 255, 204, 0.35);
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    width: 100%;
+}
+
+.btn-move-to-collection:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 26px rgba(0, 255, 204, 0.55);
+    background: linear-gradient(135deg, #26ffdd 0%, #00c6eb 100%);
+}
+
+.btn-move-to-collection:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.btn-move-to-collection:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.btn-action-icon {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+}
+
+.card-btn-move-wishlist {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    margin-top: 10px;
+    padding: 8px 12px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #00ffcc;
+    background: rgba(0, 255, 204, 0.08);
+    border: 1px solid rgba(0, 255, 204, 0.3);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.card-btn-move-wishlist:hover:not(:disabled) {
+    background: rgba(0, 255, 204, 0.22);
+    border-color: #00ffcc;
+    color: #ffffff;
+    box-shadow: 0 0 14px rgba(0, 255, 204, 0.35);
+    transform: translateY(-1px);
+}
+
+.card-btn-move-wishlist:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.card-btn-move-wishlist:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.btn-card-icon {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+}
+
+.btn-spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(0, 0, 0, 0.25);
+    border-top-color: currentColor;
+    border-radius: 50%;
+    animation: btnSpin 0.7s linear infinite;
+    flex-shrink: 0;
+}
+
+@keyframes btnSpin {
+    to { transform: rotate(360deg); }
+}
+
+/* Toast Notifications */
+.toast-container {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-width: 440px;
+    pointer-events: none;
+}
+
+@media (max-width: 640px) {
+    .toast-container {
+        bottom: 16px;
+        left: 16px;
+        right: 16px;
+        max-width: none;
+    }
+}
+
+.app-toast {
+    pointer-events: auto;
+    background: rgba(14, 15, 26, 0.96);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-left: 4px solid var(--cyan);
+    border-radius: var(--radius-md);
+    padding: 14px 18px;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.65);
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    line-height: 1.45;
+    animation: toastSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: opacity 0.25s ease, transform 0.25s ease;
+    cursor: pointer;
+}
+
+.app-toast.toast-success {
+    border-left-color: #00ff9d;
+}
+
+.app-toast.toast-error {
+    border-left-color: #ff2da4;
+}
+
+.app-toast.toast-info {
+    border-left-color: #00e5ff;
+}
+
+.toast-icon {
+    font-size: 1.15rem;
+    line-height: 1;
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+.toast-message {
+    flex: 1;
+    word-break: break-word;
+}
+
+@keyframes toastSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(16px) scale(0.96);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
