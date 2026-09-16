@@ -48,6 +48,26 @@
                 <img src="assets/img/logo-arcade-relics.png?v=5" alt="Arcade Relics" class="header-logo-image">
             </a>
 
+            <!-- Barre de navigation des onglets -->
+            <nav class="collection-tabs" id="accountNavigation" role="tablist" aria-label="Navigation de la collection">
+                <div class="liquid-glider" id="tabsLiquidGlider" aria-hidden="true"></div>
+                <button type="button" class="tab-button active" id="tabGames" role="tab" aria-selected="true">
+                    <span>🎮 Mes Jeux</span>
+                    <span class="tab-badge" id="badgeGames">0</span>
+                </button>
+                <button type="button" class="tab-button" id="tabConsoles" role="tab" aria-selected="false">
+                    <span>🕹️ Consoles</span>
+                    <span class="tab-badge" id="badgeConsoles">0</span>
+                </button>
+                <button type="button" class="tab-button" id="tabWishlist" role="tab" aria-selected="false">
+                    <span>⭐ Wishlist</span>
+                    <span class="tab-badge" id="badgeWishlist">0</span>
+                </button>
+                <button type="button" class="tab-button" id="tabProfile" role="tab" aria-selected="false">
+                    <span>👤 Profil</span>
+                </button>
+            </nav>
+
             <div class="account-user-actions">
                 <a href="index.html" class="button button-secondary" onclick="sessionStorage.setItem('arcade_relics_view_home', 'true')" style="padding: 8px 16px; font-size: 0.85rem;">
                     <span>← Accueil</span>
@@ -122,131 +142,114 @@
                     </div>
                 </div>
 
-                <!-- Controls: Tabs & Search -->
+                <!-- Controls: Search & Filters -->
                 <div class="collection-controls-bar">
-                    <div class="collection-tabs" role="tablist">
-                        <div class="liquid-glider" id="tabsLiquidGlider" aria-hidden="true"></div>
-                        <button type="button" class="tab-button active" id="tabGames" role="tab" aria-selected="true">
-                            <span>🎮 Mes Jeux</span>
-                            <span class="tab-badge" id="badgeGames">0</span>
-                        </button>
-                        <button type="button" class="tab-button" id="tabConsoles" role="tab" aria-selected="false">
-                            <span>🕹️ Consoles</span>
-                            <span class="tab-badge" id="badgeConsoles">0</span>
-                        </button>
-                        <button type="button" class="tab-button" id="tabWishlist" role="tab" aria-selected="false">
-                            <span>⭐ Wishlist</span>
-                            <span class="tab-badge" id="badgeWishlist">0</span>
-                        </button>
-                        <button type="button" class="tab-button" id="tabProfile" role="tab" aria-selected="false">
-                            <span>👤 Profil</span>
-                        </button>
-                    </div>
-
-                    <div class="search-box-wrap" id="searchBoxWrap">
-                        <svg class="icon search-icon" viewBox="0 0 24 24" aria-hidden="true">
-                            <circle cx="11" cy="11" r="8" />
-                            <path d="m21 21-4.3-4.3" />
-                        </svg>
-                        <input type="search" id="collectionSearch" class="collection-search-input"
-                            placeholder="Rechercher un jeu, une console..."
-                            aria-label="Rechercher dans votre collection">
-                    </div>
-
-                    <!-- Games Filters (Dropdowns Console & Statut/Tri - Liquide Glace) -->
-                    <div class="games-filters-wrap" id="gamesFiltersWrap">
-                        <!-- Dropdown Console -->
-                        <div class="liquid-glass-dropdown" id="dropdownConsole">
-                            <button type="button" class="liquid-glass-trigger" id="triggerConsoleFilter" aria-haspopup="listbox" aria-expanded="false" title="Filtrer par console">
-                                <span class="trigger-icon-wrap">
-                                    <svg class="icon filter-select-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                                        <rect x="2" y="6" width="20" height="12" rx="2" />
-                                        <path d="M6 12h4m-2-2v4" />
-                                        <circle cx="17" cy="10" r="1" fill="currentColor" />
-                                        <circle cx="15" cy="13" r="1" fill="currentColor" />
-                                    </svg>
-                                </span>
-                                <span class="trigger-label" id="labelConsoleFilter">Toutes les consoles</span>
-                                <svg class="trigger-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                    <path d="m6 9 6 6 6-6" />
-                                </svg>
-                            </button>
-                            <div class="liquid-glass-menu" id="menuConsoleFilter" role="listbox" tabindex="-1" aria-label="Consoles">
-                                <!-- Généré dynamiquement -->
-                            </div>
-                            <select id="gamesConsoleFilter" class="sr-only-select" aria-label="Filtrer par console" tabindex="-1">
-                                <option value="all">Toutes les consoles</option>
-                            </select>
+                    <div class="collection-controls-left">
+                        <div class="search-box-wrap" id="searchBoxWrap">
+                            <svg class="icon search-icon" viewBox="0 0 24 24" aria-hidden="true">
+                                <circle cx="11" cy="11" r="8" />
+                                <path d="m21 21-4.3-4.3" />
+                            </svg>
+                            <input type="search" id="collectionSearch" class="collection-search-input"
+                                placeholder="Rechercher un jeu, une console..."
+                                aria-label="Rechercher dans votre collection">
                         </div>
 
-                        <!-- Dropdown Statut / Tri -->
-                        <div class="liquid-glass-dropdown" id="dropdownStatus">
-                            <button type="button" class="liquid-glass-trigger" id="triggerStatusFilter" aria-haspopup="listbox" aria-expanded="false" title="Trier ou filtrer par statut">
-                                <span class="trigger-icon-wrap">
-                                    <svg class="icon filter-select-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                                        <path d="M3 6h18M6 12h12m-9 6h6" />
+                        <!-- Games Filters (Dropdowns Console & Statut/Tri - Liquide Glace) -->
+                        <div class="games-filters-wrap" id="gamesFiltersWrap">
+                            <!-- Dropdown Console -->
+                            <div class="liquid-glass-dropdown" id="dropdownConsole">
+                                <button type="button" class="liquid-glass-trigger" id="triggerConsoleFilter" aria-haspopup="listbox" aria-expanded="false" title="Filtrer par console">
+                                    <span class="trigger-icon-wrap">
+                                        <svg class="icon filter-select-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                            <rect x="2" y="6" width="20" height="12" rx="2" />
+                                            <path d="M6 12h4m-2-2v4" />
+                                            <circle cx="17" cy="10" r="1" fill="currentColor" />
+                                            <circle cx="15" cy="13" r="1" fill="currentColor" />
+                                        </svg>
+                                    </span>
+                                    <span class="trigger-label" id="labelConsoleFilter">Toutes les consoles</span>
+                                    <svg class="trigger-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                        <path d="m6 9 6 6 6-6" />
                                     </svg>
-                                </span>
-                                <span class="trigger-label" id="labelStatusFilter">Tous les jeux</span>
-                                <svg class="trigger-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                    <path d="m6 9 6 6 6-6" />
-                                </svg>
-                            </button>
-                            <div class="liquid-glass-menu" id="menuStatusFilter" role="listbox" tabindex="-1" aria-label="Statut et tri">
-                                <button type="button" class="liquid-option active" data-value="all">
-                                    <span class="option-indicator"></span>
-                                    <span class="option-text">Tous les jeux</span>
-                                    <svg class="option-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
                                 </button>
-                                <button type="button" class="liquid-option" data-value="az">
-                                    <span class="option-indicator"></span>
-                                    <span class="option-text">Ordre alphabétique (A-Z)</span>
-                                    <svg class="option-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
-                                </button>
-                                <button type="button" class="liquid-option" data-value="backlog">
-                                    <span class="option-indicator indicator-backlog"></span>
-                                    <span class="option-text">Statut : Pile à terminer</span>
-                                    <svg class="option-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
-                                </button>
-                                <button type="button" class="liquid-option" data-value="playing">
-                                    <span class="option-indicator indicator-playing"></span>
-                                    <span class="option-text">Statut : En cours</span>
-                                    <svg class="option-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
-                                </button>
-                                <button type="button" class="liquid-option" data-value="finished">
-                                    <span class="option-indicator indicator-finished"></span>
-                                    <span class="option-text">Statut : Terminés</span>
-                                    <svg class="option-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
-                                </button>
+                                <div class="liquid-glass-menu" id="menuConsoleFilter" role="listbox" tabindex="-1" aria-label="Consoles">
+                                    <!-- Généré dynamiquement -->
+                                </div>
+                                <select id="gamesConsoleFilter" class="sr-only-select" aria-label="Filtrer par console" tabindex="-1">
+                                    <option value="all">Toutes les consoles</option>
+                                </select>
                             </div>
-                            <select id="gamesStatusFilter" class="sr-only-select" aria-label="Trier ou filtrer par statut" tabindex="-1">
-                                <option value="all">Tous les jeux</option>
-                                <option value="az">Ordre alphabétique (A-Z)</option>
-                                <option value="backlog">Statut : Pile à terminer (pas commencé)</option>
-                                <option value="playing">Statut : En cours</option>
-                                <option value="finished">Statut : Terminés</option>
-                            </select>
-                        </div>
-                    </div>
 
-                    <!-- Wishlist Type Filter (Tous / Jeux / Consoles) -->
-                    <div class="wishlist-filter-toggle" id="wishlistFilterToggle" role="group" aria-label="Filtre Wishlist" style="display: none;">
-                        <div class="liquid-glider" id="wishlistLiquidGlider" aria-hidden="true"></div>
-                        <button type="button" class="wishlist-filter-btn active" id="filterWishlistAll"
-                            data-filter="all" aria-pressed="true">
-                            <span>Tous</span>
-                            <span class="filter-count" id="countWishlistAll">0</span>
-                        </button>
-                        <button type="button" class="wishlist-filter-btn" id="filterWishlistGames"
-                            data-filter="games" aria-pressed="false">
-                            <span>🎮 Jeux</span>
-                            <span class="filter-count" id="countWishlistGames">0</span>
-                        </button>
-                        <button type="button" class="wishlist-filter-btn" id="filterWishlistConsoles"
-                            data-filter="consoles" aria-pressed="false">
-                            <span>🕹️ Consoles</span>
-                            <span class="filter-count" id="countWishlistConsoles">0</span>
-                        </button>
+                            <!-- Dropdown Statut / Tri -->
+                            <div class="liquid-glass-dropdown" id="dropdownStatus">
+                                <button type="button" class="liquid-glass-trigger" id="triggerStatusFilter" aria-haspopup="listbox" aria-expanded="false" title="Trier ou filtrer par statut">
+                                    <span class="trigger-icon-wrap">
+                                        <svg class="icon filter-select-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                            <path d="M3 6h18M6 12h12m-9 6h6" />
+                                        </svg>
+                                    </span>
+                                    <span class="trigger-label" id="labelStatusFilter">Tous les jeux</span>
+                                    <svg class="trigger-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                        <path d="m6 9 6 6 6-6" />
+                                    </svg>
+                                </button>
+                                <div class="liquid-glass-menu" id="menuStatusFilter" role="listbox" tabindex="-1" aria-label="Statut et tri">
+                                    <button type="button" class="liquid-option active" data-value="all">
+                                        <span class="option-indicator"></span>
+                                        <span class="option-text">Tous les jeux</span>
+                                        <svg class="option-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                                    </button>
+                                    <button type="button" class="liquid-option" data-value="az">
+                                        <span class="option-indicator"></span>
+                                        <span class="option-text">Ordre alphabétique (A-Z)</span>
+                                        <svg class="option-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                                    </button>
+                                    <button type="button" class="liquid-option" data-value="backlog">
+                                        <span class="option-indicator indicator-backlog"></span>
+                                        <span class="option-text">Statut : Pile à terminer</span>
+                                        <svg class="option-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                                    </button>
+                                    <button type="button" class="liquid-option" data-value="playing">
+                                        <span class="option-indicator indicator-playing"></span>
+                                        <span class="option-text">Statut : En cours</span>
+                                        <svg class="option-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                                    </button>
+                                    <button type="button" class="liquid-option" data-value="finished">
+                                        <span class="option-indicator indicator-finished"></span>
+                                        <span class="option-text">Statut : Terminés</span>
+                                        <svg class="option-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                                    </button>
+                                </div>
+                                <select id="gamesStatusFilter" class="sr-only-select" aria-label="Trier ou filtrer par statut" tabindex="-1">
+                                    <option value="all">Tous les jeux</option>
+                                    <option value="az">Ordre alphabétique (A-Z)</option>
+                                    <option value="backlog">Statut : Pile à terminer (pas commencé)</option>
+                                    <option value="playing">Statut : En cours</option>
+                                    <option value="finished">Statut : Terminés</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Wishlist Type Filter (Tous / Jeux / Consoles) -->
+                        <div class="wishlist-filter-toggle" id="wishlistFilterToggle" role="group" aria-label="Filtre Wishlist" style="display: none;">
+                            <div class="liquid-glider" id="wishlistLiquidGlider" aria-hidden="true"></div>
+                            <button type="button" class="wishlist-filter-btn active" id="filterWishlistAll"
+                                data-filter="all" aria-pressed="true">
+                                <span>Tous</span>
+                                <span class="filter-count" id="countWishlistAll">0</span>
+                            </button>
+                            <button type="button" class="wishlist-filter-btn" id="filterWishlistGames"
+                                data-filter="games" aria-pressed="false">
+                                <span>🎮 Jeux</span>
+                                <span class="filter-count" id="countWishlistGames">0</span>
+                            </button>
+                            <button type="button" class="wishlist-filter-btn" id="filterWishlistConsoles"
+                                data-filter="consoles" aria-pressed="false">
+                                <span>🕹️ Consoles</span>
+                                <span class="filter-count" id="countWishlistConsoles">0</span>
+                            </button>
+                        </div>
                     </div>
 
                     <!-- View Mode Toggle (Grille vs Étagère) -->

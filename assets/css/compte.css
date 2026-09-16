@@ -27,12 +27,24 @@
     align-items: center;
     justify-content: space-between;
     height: 72px;
+    gap: 16px;
+}
+
+.account-navbar .brand-header-logo {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.account-navbar .collection-tabs {
+    flex-shrink: 0;
 }
 
 .account-user-actions {
     display: flex;
     align-items: center;
     gap: 14px;
+    flex-shrink: 0;
 }
 
 .user-email-badge {
@@ -152,7 +164,7 @@
     color: var(--text-muted);
 }
 
-/* Controls Bar (Tabs & Search) */
+/* Controls Bar (Search & Filters) */
 .collection-controls-bar {
     display: flex;
     align-items: center;
@@ -162,6 +174,14 @@
     padding-bottom: 20px;
     border-bottom: 1px solid var(--border);
     margin-bottom: 28px;
+}
+
+.collection-controls-left {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    flex: 1;
 }
 
 .collection-tabs {
@@ -490,16 +510,70 @@
     }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1080px) {
     .account-nav-inner {
-        height: 64px;
+        gap: 10px;
+    }
+
+    .account-navbar .tab-button {
+        padding: 7px 12px;
+        font-size: 0.82rem;
+        gap: 6px;
     }
 
     .user-email-badge {
-        max-width: 160px;
+        max-width: 130px;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
+    }
+}
+
+@media (max-width: 768px) {
+    .account-navbar {
+        padding: 8px 0;
+    }
+
+    .account-nav-inner {
+        height: auto;
+        flex-wrap: wrap;
+        row-gap: 12px;
+        column-gap: 8px;
+        justify-content: space-between;
+    }
+
+    .account-navbar .brand-header-logo {
+        order: 1;
+    }
+
+    .account-user-actions {
+        order: 2;
+        gap: 8px;
+    }
+
+    .account-navbar .collection-tabs {
+        order: 3;
+        width: 100%;
+        justify-content: center;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        padding: 4px;
+        margin: 0 auto;
+    }
+
+    .account-navbar .collection-tabs::-webkit-scrollbar {
+        display: none;
+    }
+
+    .account-navbar .tab-button {
+        padding: 6px 12px;
+        font-size: 0.8rem;
+        white-space: nowrap;
+    }
+
+    .user-email-badge {
+        display: none;
     }
 
     .collection-controls-bar {
@@ -507,8 +581,18 @@
         align-items: stretch;
     }
 
+    .collection-controls-left {
+        flex-direction: column;
+        align-items: stretch;
+        width: 100%;
+    }
+
     .search-box-wrap {
         max-width: 100%;
+    }
+
+    .view-mode-toggle {
+        align-self: flex-end;
     }
 
     .items-grid {
